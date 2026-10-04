@@ -1,8 +1,8 @@
 # Paddle / ATB 机制图解
 
-以 Llama FFN 为例，解释 Paddle 逐算子调用与 ATB 子图调用的执行顺序和内存管理。
+以 Llama-65B 为例，解释 Paddle 与 ATB 的执行机制、接入边界、增量收益与方案取舍。
 
-网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/ae6f22b9cc8fa9ac5a0a5a307539202829532b07/index.html
+网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/4129a9e8b07d1d72ce98ca7f98514fcd8ce1567a/index.html
 
 页面为独立 HTML，包含 SVG 图解与交互，无需构建或安装依赖。页面右上角可下载 HTML 文件，保存后可离线阅读与操作图解。
 
