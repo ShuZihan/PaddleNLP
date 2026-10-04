@@ -13,6 +13,8 @@ main{max-width:900px;margin:auto;padding:50px 28px 56px}.masthead{display:flex;j
 @media print{body{background:#fff;font-size:11pt}main{padding:0;max-width:none}header{padding:18px 0}h1{font-size:28pt}.card{break-inside:avoid}.segmented,.stages{display:none}.print-only{display:block}footer{break-inside:avoid}.graph-layout{grid-template-columns:300px 1fr}a{color:inherit}.scope{font-size:10pt}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 h3{font-size:18px;margin:25px 0 12px}.call-flow{list-style:none;padding:0;margin:14px 0 0;counter-reset:step}.call-flow li{position:relative;padding:0 0 22px 39px;border-left:2px solid var(--line);margin-left:12px;counter-increment:step}.call-flow li:last-child{padding-bottom:0;border-left-color:transparent}.call-flow li:before{content:counter(step);position:absolute;left:-14px;top:0;width:26px;height:26px;border-radius:50%;background:var(--teal);color:white;text-align:center;font:14px/26px var(--mono)}.call-flow strong{display:block;font-size:16px;line-height:1.6}.call-flow span,.call-flow em{display:block;font-size:14px;margin-top:5px}.call-flow em{font-style:normal;color:var(--teal)}.resource-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;margin:16px 0}.resource-table th,.resource-table td{text-align:left;vertical-align:top;border-bottom:1px solid var(--line);padding:10px 8px;overflow-wrap:anywhere}.resource-table th{background:var(--teal-light)}.resource-table th:first-child{width:27%}code{overflow-wrap:anywhere}@media(max-width:620px){.call-flow li{padding-left:26px}.call-flow strong{font-size:15px}.call-flow span,.call-flow em{font-size:13px}.resource-table{font-size:12px}.resource-table th,.resource-table td{padding:9px 5px}}
+
+.ffn-lead{font-size:17px}.ffn-matrices{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}.ffn-matrices p{font-size:13px;margin:5px 0}.ffn-matrix{display:grid;gap:3px;height:152px;margin:10px 0}.ffn-columns{grid-template-columns:repeat(8,1fr)}.ffn-rows{grid-template-rows:repeat(8,1fr)}.ffn-slice{display:flex;align-items:center;justify-content:center;background:#edf1ef;color:#66777b;font:11px var(--mono);border:1px solid #d7e0dc;border-radius:2px}.ffn-slice.active{background:var(--teal);color:white;border-color:var(--teal)}.ffn-rank{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px}.ffn-rank select{font:inherit;padding:6px 12px;border:1px solid var(--line);border-radius:7px;background:white}.ffn-channel{color:var(--teal);font-size:13px}.ffn-flow{text-align:center}.ffn-box{border:1px solid var(--line);border-radius:9px;padding:12px;background:#f7faf8;font-size:15px}.ffn-box strong,.ffn-box span{display:block}.ffn-box span{font-size:13px;color:var(--muted)}.ffn-branches{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ffn-arrow{color:var(--teal);font-size:22px;line-height:1.3;margin:6px 0}.ffn-sum{background:var(--rust-light);border-color:#e8c6b6}.ffn-sum span{color:var(--rust)}.ffn-equation{font-family:var(--mono);font-size:15px;text-align:center;overflow-wrap:anywhere;margin:12px 0}.ffn-concat{display:grid;grid-template-columns:1fr 1fr;margin:12px 0;border:1px solid var(--line);border-radius:9px;overflow:hidden}.ffn-concat>div{padding:14px 8px;text-align:center;background:var(--teal-light);font-size:15px}.ffn-concat>div+div{background:var(--rust-light)}.ffn-concat small{display:block;font-size:12px;color:var(--muted)}.ffn-size{font-size:12px;color:var(--muted);text-align:center}.ffn-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;margin:16px 0}.ffn-table th,.ffn-table td{border-bottom:1px solid var(--line);text-align:left;padding:9px 6px;vertical-align:top;overflow-wrap:anywhere}.ffn-table th{background:var(--teal-light)}.ffn-table caption{text-align:left;font-size:12px;color:var(--muted);margin-bottom:6px}.ffn-matrices strong{font-size:15px}@media(max-width:620px){.ffn-matrices{gap:12px}.ffn-matrices strong{font-size:13px}.ffn-branches{gap:8px}.ffn-box{font-size:13px;padding:10px 6px}.ffn-box span{font-size:12px}.ffn-equation{font-size:13px}.ffn-table{font-size:11px}.ffn-table th,.ffn-table td{padding:9px 3px}.ffn-concat>div{font-size:13px}.ffn-matrix{height:136px}}
 </style>
 </head>
 <body>
@@ -26,8 +28,56 @@ h3{font-size:18px;margin:25px 0 12px}.call-flow{list-style:none;padding:0;margin
  </header>
 
  <section aria-labelledby="s1">
-  <h2 id="s1"><span class="num">01</span>从逐节点调用到子图调用</h2>
-  <p>PaddleNLP 将 <code>gate_proj</code> 与 <code>up_proj</code> 的权重沿输出维度拼接，用一次矩阵乘法得到两路输出 g、u。随后计算 SwiGLU，再执行 <code>down_proj</code>，形成 <strong>MatMul → SwiGLU → MatMul</strong>。下面比较使用同一组 ATB Operation 的两种接入方式。</p>
+  <h2 id="s1"><span class="num">01</span>FFN 的张量并行与本卡计算</h2>
+  <h3>按中间通道切分 FFN</h3>
+  <p>Llama-65B 的隐藏维度为 8192，FFN 中间维度为 22016。MP8 下，每卡负责 <strong>2752 个中间通道</strong>。gate、up 按输出维度切分，down 按输入维度切分，三份切片对应同一组中间通道。</p>
+  <figure class="card ffn-shards">
+   <div class="card-label">权重切分 · 按 xW 的矩阵布局表示</div>
+   <div class="ffn-matrices">
+    <div><strong>Wgate、Wup：按列切分</strong><p>8192 × 22016</p><div class="ffn-matrix ffn-columns"><span class="ffn-slice active" data-rank="0">0</span><span class="ffn-slice" data-rank="1">1</span><span class="ffn-slice" data-rank="2">2</span><span class="ffn-slice" data-rank="3">3</span><span class="ffn-slice" data-rank="4">4</span><span class="ffn-slice" data-rank="5">5</span><span class="ffn-slice" data-rank="6">6</span><span class="ffn-slice" data-rank="7">7</span></div><p>每卡 8192 × 2752</p></div>
+    <div><strong>Wdown：按行切分</strong><p>22016 × 8192</p><div class="ffn-matrix ffn-rows"><span class="ffn-slice active" data-rank="0">0</span><span class="ffn-slice" data-rank="1">1</span><span class="ffn-slice" data-rank="2">2</span><span class="ffn-slice" data-rank="3">3</span><span class="ffn-slice" data-rank="4">4</span><span class="ffn-slice" data-rank="5">5</span><span class="ffn-slice" data-rank="6">6</span><span class="ffn-slice" data-rank="7">7</span></div><p>每卡 2752 × 8192</p></div>
+   </div>
+   <label class="ffn-rank">查看对应切片 <select id="ffn-rank-select" aria-controls="ffn-channel"><option value="0">rank 0</option><option value="1">rank 1</option><option value="2">rank 2</option><option value="3">rank 3</option><option value="4">rank 4</option><option value="5">rank 5</option><option value="6">rank 6</option><option value="7">rank 7</option></select></label>
+   <p class="ffn-channel" id="ffn-channel" aria-live="polite">rank 0：负责中间通道 [0, 2752)</p>
+   <figcaption class="caption">编号表示切片所属 rank。两种方向的切片沿同一中间维度对应；矩阵示意不按实际长宽比绘制。</figcaption>
+  </figure>
+  <h3>down_proj 产生部分和，AllReduce 得到完整输出</h3>
+  <figure class="card ffn-local">
+   <div class="card-label">第 r 张卡的计算 · T 为本次处理的 token 数</div>
+   <div class="ffn-flow">
+    <div class="ffn-box"><strong>相同的输入 x</strong><span>[T, 8192] · 各卡均持有</span></div>
+    <div class="ffn-arrow" aria-hidden="true">↓</div>
+    <div class="ffn-branches">
+     <div class="ffn-box"><strong>x Wgateᵣ → gᵣ</strong><span>[T, 2752]</span></div>
+     <div class="ffn-box"><strong>x Wupᵣ → uᵣ</strong><span>[T, 2752]</span></div>
+    </div>
+    <div class="ffn-arrow" aria-hidden="true">↓</div>
+    <div class="ffn-box"><strong>hᵣ = SiLU(gᵣ) ⊙ uᵣ</strong><span>本卡对应通道逐元素计算，无需通信</span></div>
+    <div class="ffn-arrow" aria-hidden="true">↓</div>
+    <div class="ffn-box ffn-sum"><strong>yᵣ = hᵣ Wdownᵣ</strong><span>[T, 8192] · 本卡的部分和</span></div>
+    <div class="ffn-arrow" aria-hidden="true">↓</div>
+    <div class="ffn-box"><strong>AllReduce(sum)：y = Σᵣ yᵣ</strong><span>八卡相加，各卡得到完整输出 [T, 8192]</span></div>
+   </div>
+   <figcaption class="caption">r = 0, …, 7。每卡只计算本卡 2752 个中间通道的贡献，因此 yᵣ 虽有完整输出形状，数值仍是部分和。</figcaption>
+  </figure>
+  <h3>拼接本卡权重，合并 gate、up 两次 MatMul</h3>
+  <p>两次投影使用相同的 x。PaddleNLP 在准备权重时，将本卡的 Wgateᵣ、Wupᵣ 按列拼接，使两次投影通过一次 MatMul 完成：</p>
+  <figure class="card ffn-pack">
+   <div class="card-label">本卡计算 · 拼接前</div>
+   <div class="ffn-branches">
+    <div class="ffn-box"><strong>gᵣ = x Wgateᵣ</strong><span>一次 MatMul</span></div>
+    <div class="ffn-box"><strong>uᵣ = x Wupᵣ</strong><span>一次 MatMul</span></div>
+   </div>
+   <div class="ffn-arrow" style="text-align:center" aria-hidden="true">↓</div>
+   <div class="card-label">本卡计算 · 权重按列拼接后</div>
+   <div class="ffn-concat"><div>Wgateᵣ<small>8192 × 2752</small></div><div>Wupᵣ<small>8192 × 2752</small></div></div>
+   <p class="ffn-size">拼接后的权重：8192 × 5504</p>
+   <p class="ffn-equation">zᵣ = x [Wgateᵣ, Wupᵣ] = [gᵣ, uᵣ]</p>
+   <div class="ffn-concat"><div>gᵣ<small>前 2752 个通道</small></div><div>uᵣ<small>后 2752 个通道</small></div></div>
+   <figcaption class="caption">一次 MatMul 的输出 zᵣ 为 [T, 5504]，前后两部分供 SwiGLU 使用。拼接不改变通道分配，down_proj 后仍需 AllReduce。</figcaption>
+  </figure>
+  <h3>Paddle 与 ATB 的接入比较</h3>
+  <p>完成上述权重准备后，本卡计算为 <strong>MatMul → SwiGLU → MatMul → AllReduce</strong>。下面保持计算实现和权重布局一致，比较谁负责调度和中间内存规划。图中省略本卡中间张量及权重的 r 下标。</p>
   <figure class="card graph-card" id="graph-card" data-mode="direct">
    <div class="card-head">
     <div><div class="card-label">FFN 的执行分工</div><p class="card-title">由谁调度 A、B、C</p></div>
@@ -204,6 +254,9 @@ document.querySelectorAll('button[data-stage]').forEach(button=>button.addEventL
  document.getElementById('memory-heading').textContent=data.heading;
  document.getElementById('memory-copy').textContent=data.copy;
 }));
+
+const rankSelect=document.getElementById('ffn-rank-select');
+if(rankSelect){rankSelect.addEventListener('change',()=>{const r=Number(rankSelect.value);document.querySelectorAll('.ffn-slice').forEach(el=>el.classList.toggle('active',Number(el.dataset.rank)===r));document.getElementById('ffn-channel').textContent=`rank ${r}：负责中间通道 [${r*2752}, ${(r+1)*2752})`;});}
 </script>
 </body>
 </html>
