@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>ATB 组图，究竟改变了什么？</title>
+<style>
+:root{--paper:#f7f7f2;--surface:#fff;--ink:#192a32;--muted:#52636b;--line:#dbe2e1;--teal:#096b61;--teal-light:#eaf5f1;--rust:#a34829;--rust-light:#fff0e7;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI","Noto Sans CJK SC","Microsoft YaHei",sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased}
+main{max-width:900px;margin:auto;padding:50px 28px 56px}.masthead{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding-bottom:14px;font-size:12px;letter-spacing:.1em;color:var(--muted)}.edition{white-space:nowrap}header{padding:38px 0 25px}.eyebrow{font-size:12px;font-weight:750;letter-spacing:.1em;color:var(--teal);margin:0 0 12px}h1{font-size:clamp(30px,4.5vw,43px);line-height:1.35;letter-spacing:-.035em;margin:0 0 20px;font-weight:760}p{margin:0 0 17px}header p{max-width:750px;font-size:18px;color:#384c56}.scope{font-size:12px;color:var(--muted);margin:0}section{margin:28px 0 38px}h2{font-size:23px;line-height:1.55;letter-spacing:-.02em;margin:0 0 14px;display:flex;align-items:baseline;gap:13px}.num{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--teal)}a{color:var(--teal);text-underline-offset:3px}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #1e887c;outline-offset:4px}strong{font-weight:720}code{font-family:var(--mono);font-size:.91em}.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:23px;margin:20px 0}.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}.card-label{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.06em}.card-title{font-size:17px;font-weight:750;margin:3px 0 0;line-height:1.5}.segmented{display:flex;background:#edf1ef;padding:4px;border-radius:10px;gap:4px;flex-shrink:0}.segmented button{border:0;border-radius:7px;background:transparent;color:#465963;font-size:13px;padding:9px 13px;min-height:42px;line-height:1.4}.segmented button[aria-pressed=true]{background:var(--ink);color:white;box-shadow:0 1px 3px #122c2518}.graph-layout{display:grid;grid-template-columns:minmax(260px,350px) 1fr;gap:25px;align-items:center}.ffn-svg{display:block;width:100%;height:auto;overflow:visible}.ffn-svg text{font-family:inherit}.node{fill:white;stroke:var(--teal);stroke-width:1.6}.node-id{fill:var(--teal);font-size:14px;font-weight:750}.node-label{font-size:17px;font-weight:650;fill:var(--ink)}.formula{font-size:14px;fill:var(--muted)}.tensor-label{font-size:14px;fill:var(--muted)}.link{fill:none;stroke:#72878a;stroke-width:1.4}.group-boundary{fill:var(--rust-light);stroke:var(--rust);stroke-width:1.4;stroke-dasharray:5 4;opacity:0}.atb-boundary-label{opacity:0;fill:var(--rust);font-size:12px;font-weight:700}.owner-tag{fill:var(--teal);font-size:11px}.owner-tag.group-tag{display:none}.graph-card[data-mode=graph] .group-boundary,.graph-card[data-mode=graph] .atb-boundary-label{opacity:1}.graph-card[data-mode=graph] .node{stroke:#b0bbb6}.graph-card[data-mode=graph] .direct-tag{display:none}.graph-card[data-mode=graph] .group-tag{display:block}.comm-node{fill:#f1f4f4;stroke:#a9b7ba;stroke-width:1.2}.comm-owner{fill:var(--muted);font-size:11px}.explain-panel{padding:8px 0}.stat{font-size:45px;font-weight:750;letter-spacing:-.05em;line-height:1.2;margin:0;color:var(--teal)}.stat small{font-size:15px;font-weight:500;margin-left:6px;letter-spacing:0}.stat-label{font-size:13px;color:var(--muted);margin:4px 0 19px}.state-heading{font-size:16px;font-weight:750;line-height:1.5;margin-bottom:7px}.state-copy{font-size:14px;line-height:1.85;margin-bottom:14px}.fixed-note{border-top:1px solid var(--line);padding-top:13px;font-size:13px;color:var(--muted);margin:0}.caption{font-size:12px;color:var(--muted);line-height:1.8;border-top:1px solid var(--line);padding-top:12px;margin:14px 0 0}.main-point{border-left:3px solid var(--teal);padding:2px 0 2px 16px;margin:22px 0;font-size:16px}.method-note{font-size:12px;color:var(--muted);margin:0 0 16px}.schedule-row+.schedule-row{margin-top:21px}.schedule-label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:8px}.schedule-label .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}.schedule-label.rust .dot{background:var(--rust)}.events{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;position:relative}.event{position:relative;border-radius:6px;padding:10px 3px;text-align:center;font-family:var(--mono);font-size:16px;border:1px solid #cbdfd9;background:var(--teal-light);color:var(--teal)}.event.exec{background:#f0f3f5;color:#344c5a;border-color:#d7e0e4}.event+.event:before{content:"›";position:absolute;left:-6px;top:10px;color:#758489;transform:translateX(-50%);font-size:14px;z-index:1}.sequence-note{font-size:12px;color:var(--muted);margin:8px 0 0}.schedule-result{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:20px;padding-top:15px;border-top:1px solid var(--line)}.schedule-result p{font-size:13px;margin:0}.schedule-result strong{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}.schedule-result span{color:var(--muted)}.stages{display:flex;gap:7px;margin:16px 0}.stages button{flex:1;min-width:0;min-height:47px;border:1px solid var(--line);border-radius:8px;background:white;color:var(--muted);font-size:13px;line-height:1.4;padding:8px 5px}.stages button[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}.memory-grid{display:grid;grid-template-columns:66px repeat(3,minmax(0,1fr));gap:5px;font-size:12px}.memory-row{display:contents}.mem-head{text-align:center;padding:5px 0 10px;color:var(--muted)}.mem-row-label{padding:10px 0;align-self:center;font-size:13px}.mem-cell{display:flex;align-items:center;justify-content:center;border:1px solid #e1e8e5;background:#f7f9f8;color:#6b787a;border-radius:6px;min-height:48px;text-align:center;line-height:1.5;padding:6px 2px}.mem-cell.live{background:var(--teal-light);border-color:#c4ddd4;color:var(--teal)}.mem-cell.overlap{background:var(--rust-light);border-color:#e8c6b6;color:var(--rust)}.mem-cell.selected{outline:2px solid var(--ink);outline-offset:-2px;font-weight:700}.mem-head.selected{color:var(--ink);font-weight:800}.memory-note{margin:18px 0 0;min-height:78px;padding:13px 15px;background:#f4f6f4;border-radius:8px;font-size:14px}.memory-note strong{display:block;margin-bottom:4px;font-size:14px}.allocation-types{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.allocation-types p{margin:0;font-size:13px;color:var(--muted);line-height:1.8}.allocation-types strong{font-size:14px;color:var(--ink);display:block;margin-bottom:4px}.closing{background:#e9f1ed;border-radius:12px;padding:20px 23px;font-size:16px;line-height:1.9;margin:26px 0 32px}.closing p{margin:0}footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:18px;line-height:1.9}details{margin-top:13px}summary{cursor:pointer;color:#334b54;font-weight:650;padding:7px 0}details ol{padding-left:20px}details li{margin-bottom:8px}details p{margin:12px 0}.no-script-only{display:none}.print-only{display:none}
+@media(max-width:620px){main{padding:23px 18px 38px}.masthead{font-size:10px;letter-spacing:.05em}header{padding:28px 0 12px}header p{font-size:16px;line-height:1.85}h1{font-size:31px;margin-bottom:17px}h2{font-size:21px;gap:10px}section{margin:24px 0 31px}.card{padding:17px 14px;border-radius:12px}.card-head{display:block;margin-bottom:16px}.segmented{margin-top:12px;display:flex}.segmented button{flex:1;padding:10px 8px}.graph-layout{grid-template-columns:1fr;gap:8px}.ffn-svg{max-width:330px;margin:auto}.explain-panel{border-top:1px solid var(--line);padding-top:18px}.stat{font-size:32px}.stat-label{margin:3px 0 13px}.state-copy{margin-bottom:11px}.schedule-result,.allocation-types{grid-template-columns:1fr;gap:12px}.memory-grid{grid-template-columns:52px repeat(3,minmax(0,1fr));gap:4px}.mem-cell{font-size:11px}.memory-note{min-height:112px;padding:12px}.stages button{font-size:12px}.closing{padding:18px;font-size:15px}.main-point{font-size:15px}.event{font-size:15px;padding:10px 1px}.caption{font-size:11px}}
+@media print{body{background:#fff;font-size:11pt}main{padding:0;max-width:none}header{padding:18px 0}h1{font-size:28pt}.card{break-inside:avoid}.segmented,.stages{display:none}.print-only{display:block}footer{break-inside:avoid}.graph-layout{grid-template-columns:300px 1fr}a{color:inherit}.scope{font-size:10pt}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+ <div class="masthead"><span>PADDLE × ATB · 框架机制图解</span><a class="edition" href="paddle-atb-graph-explained.html" download="paddle-atb-guide.html">下载 HTML</a></div>
+ <header>
+  <p class="eyebrow">同一段计算，两种接入方式</p>
+  <h1>ATB 组图，<br>究竟改变了什么？</h1>
+  <p>Paddle 可以将 FFN 的多个节点替换为一个自定义算子，由它调用 ATB 子图。<strong>Paddle 调度这个算子，ATB 安排内部计算，并规划中间张量的内存。</strong>两者通过输入输出张量和执行流衔接。</p>
+  <p class="scope">Llama-65B · NPU · MP8 · FP16　／　以 FFN 的三个计算单元为例</p>
+ </header>
+
+ <section aria-labelledby="s1">
+  <h2 id="s1"><span class="num">01</span>从逐节点调用到子图调用</h2>
+  <p>PaddleNLP 将 <code>gate_proj</code> 与 <code>up_proj</code> 的权重沿输出维度拼接，用一次矩阵乘法得到两路输出 g、u。随后计算 SwiGLU，再执行 <code>down_proj</code>，形成 <strong>MatMul → SwiGLU → MatMul</strong>。下面比较使用同一组 ATB Operation 的两种接入方式。</p>
+  <figure class="card graph-card" id="graph-card" data-mode="direct">
+   <div class="card-head">
+    <div><div class="card-label">FFN 的执行分工</div><p class="card-title">由谁调度 A、B、C</p></div>
+    <div class="segmented" role="group" aria-label="选择接入方式">
+     <button type="button" data-mode="direct" aria-pressed="true" aria-controls="graph-card">逐算子调用</button>
+     <button type="button" data-mode="graph" aria-pressed="false" aria-controls="graph-card">ATB 组图</button>
+    </div>
+   </div>
+   <div class="graph-layout">
+    <svg class="ffn-svg" viewBox="0 0 310 490" role="img" aria-labelledby="ffn-title ffn-desc">
+     <title id="ffn-title">相同的 FFN 计算由 Paddle 或 ATB 管理</title>
+     <desc id="ffn-desc">归一化输出 x 经过 A 矩阵乘法得到 z，其中包含 gate_proj 和 up_proj 的输出 g、u；B 计算 SwiGLU 得到 h；C 计算 down_proj 得到每卡部分和 y_r，随后由 Paddle 调度 AllReduce。ATB 组图模式下，A、B、C 由 ATB 调度。</desc>
+     <defs><marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8Z" fill="#72878a"/></marker></defs>
+     <text x="155" y="21" text-anchor="middle" class="tensor-label">归一化输出 x</text>
+     <path d="M155 30V63" class="link" marker-end="url(#arrow)"/>
+     <rect x="11" y="45" width="288" height="320" rx="13" class="group-boundary"/>
+     <text x="287" y="59" text-anchor="end" class="atb-boundary-label">ATB GraphOperation</text>
+     <g id="node-a"><rect x="34" y="68" width="242" height="72" rx="9" class="node"/>
+      <text x="50" y="91" class="node-id">A</text><text x="76" y="92" class="node-label">MatMul</text>
+      <text x="76" y="118" class="formula">z = x [Wgate, Wup]</text>
+      <text x="263" y="89" text-anchor="end" class="owner-tag direct-tag">Paddle 调用</text>
+      <text x="263" y="89" text-anchor="end" class="owner-tag group-tag">ATB 调用</text></g>
+     <path d="M155 140V173" class="link" marker-end="url(#arrow)"/><text x="168" y="162" class="tensor-label">z = [g, u]</text>
+     <g id="node-b"><rect x="34" y="178" width="242" height="72" rx="9" class="node"/>
+      <text x="50" y="201" class="node-id">B</text><text x="76" y="202" class="node-label">SwiGLU</text>
+      <text x="76" y="228" class="formula">h = SiLU(g) ⊙ u</text>
+      <text x="263" y="199" text-anchor="end" class="owner-tag direct-tag">Paddle 调用</text>
+      <text x="263" y="199" text-anchor="end" class="owner-tag group-tag">ATB 调用</text></g>
+     <path d="M155 250V283" class="link" marker-end="url(#arrow)"/><text x="168" y="272" class="tensor-label">h</text>
+     <g id="node-c"><rect x="34" y="288" width="242" height="62" rx="9" class="node"/>
+      <text x="50" y="311" class="node-id">C</text><text x="76" y="312" class="node-label">MatMul</text>
+      <text x="76" y="337" class="formula">yᵣ = h Wdown</text>
+      <text x="263" y="309" text-anchor="end" class="owner-tag direct-tag">Paddle 调用</text>
+      <text x="263" y="309" text-anchor="end" class="owner-tag group-tag">ATB 调用</text></g>
+     <path d="M155 350V393" class="link" marker-end="url(#arrow)"/><text x="168" y="380" class="tensor-label">每卡部分和 yᵣ</text>
+     <rect x="34" y="398" width="242" height="60" rx="9" class="comm-node"/>
+     <text x="50" y="422" class="node-label">AllReduce</text><text x="50" y="445" class="formula">y = Σᵣ yᵣ</text>
+     <text x="263" y="420" text-anchor="end" class="comm-owner">Paddle 调用</text>
+     <text x="155" y="482" text-anchor="middle" class="tensor-label">进入后续残差计算</text>
+    </svg>
+    <div class="explain-panel" aria-live="polite" aria-atomic="true">
+     <p class="stat"><span id="entry-count">3</span><small>个</small></p>
+     <p class="stat-label">这段 FFN 在 Paddle 中的节点数</p>
+     <p class="state-heading" id="state-heading">Paddle 调度三个节点</p>
+     <p class="state-copy" id="state-copy">A、B、C 各自调用对应的 ATB Operation。Paddle 掌握 z、h 的读写关系，负责安排节点执行和中间内存的使用。</p>
+     <p class="fixed-note">图中的 AllReduce 由 Paddle 调度，汇总八张卡的部分结果。若将它纳入子图，通信与同步也由 ATB 接管。</p>
+    </div>
+   </div>
+   <figcaption class="caption">MatMul 表示矩阵乘法，对应 ATB 的 Linear Operation；SwiGLU 使用 Activation Operation。g、u 分别是 gate_proj、up_proj 的输出。</figcaption>
+  </figure>
+  <p>组图后，Paddle 的调度对象从三个节点变成一个子图节点。<strong>ATB 接管 A → B → C 的依赖关系，以及 z、h 的内存规划。</strong>Paddle 继续负责子图与后续 AllReduce 的衔接。</p>
+ </section>
+
+ <section aria-labelledby="s2">
+  <h2 id="s2"><span class="num">02</span>先集中准备，再连续提交</h2>
+  <p><code>Setup</code> 根据输入规格准备执行配置，并给出所需的 workspace 大小。Paddle 提供这块内存后，<code>Execute</code> 将计算任务提交到 NPU 执行流。ATB 子图将多项 Setup 集中起来，再依次调用 Execute。</p>
+  <figure class="card schedule-card">
+   <div class="card-label">同一组 A、B、C · 主机调用顺序</div>
+   <p class="method-note">S = Setup（准备），E = Execute（提交）。图示为单线程下一次需要重新准备的调用。</p>
+   <div class="schedule-row">
+    <div class="schedule-label"><span class="dot" aria-hidden="true"></span>Paddle 逐节点调用</div>
+    <div class="events" aria-label="先准备A再提交A，然后准备B提交B，最后准备C提交C">
+     <span class="event">S<sub>A</sub></span><span class="event exec">E<sub>A</sub></span><span class="event">S<sub>B</sub></span><span class="event exec">E<sub>B</sub></span><span class="event">S<sub>C</sub></span><span class="event exec">E<sub>C</sub></span>
+    </div>
+    <p class="sequence-note">进入 A → 返回框架 → 进入 B → 返回框架 → 进入 C</p>
+   </div>
+   <div class="schedule-row">
+    <div class="schedule-label rust"><span class="dot" aria-hidden="true"></span>ATB 集中准备与下发</div>
+    <div class="events" aria-label="先准备A、B、C，再连续提交A、B、C">
+     <span class="event">S<sub>A</sub></span><span class="event">S<sub>B</sub></span><span class="event">S<sub>C</sub></span><span class="event exec">E<sub>A</sub></span><span class="event exec">E<sub>B</sub></span><span class="event exec">E<sub>C</sub></span>
+    </div>
+    <p class="sequence-note">调用子图 → ATB 依次提交 A、B、C → 返回 Paddle</p>
+   </div>
+  </figure>
+  <p>区别在 A 提交之后最明显：逐节点执行时，主机还要进入 B 并完成准备；组图时，B 已经准备好，可以紧接着提交。<strong>当 NPU 执行 A 较快时，这能减少等待 B 的间隙。</strong>集中准备也推迟了 A 的首次提交，因此最终收益取决于准备工作与设备计算的重叠情况。</p>
+  <p class="main-point">缓存进一步减少准备开销：输入规格满足复用条件时，Operation 可以沿用已有的执行配置。这个机制同时适用于逐节点调用和子图调用。</p>
+ </section>
+
+ <section aria-labelledby="s3">
+  <h2 id="s3"><span class="num">03</span>沿张量的使用过程规划内存</h2>
+  <p>A 产生中间结果 z；B 读取 z，将结果写入<strong>独立的输出空间 h</strong>；C 再读取 h，计算输出 yᵣ。沿这条依赖链，可以确定每块空间需要保留多久。</p>
+  <figure class="card memory-card" id="memory-card">
+   <div class="card-label">中间张量生命周期</div>
+   <p class="card-title">B 执行时，同时读取 z、写入 h</p>
+   <div class="stages" role="group" aria-label="选择正在执行的计算">
+    <button type="button" data-stage="a" aria-pressed="false" aria-controls="memory-grid memory-note">A · MatMul</button>
+    <button type="button" data-stage="b" aria-pressed="true" aria-controls="memory-grid memory-note">B · SwiGLU</button>
+    <button type="button" data-stage="c" aria-pressed="false" aria-controls="memory-grid memory-note">C · MatMul</button>
+   </div>
+   <div class="memory-grid" id="memory-grid" role="table" aria-label="z和h在三个计算阶段的生命周期">
+    <div role="row" class="memory-row"><div role="columnheader" class="mem-head">张量</div><div role="columnheader" class="mem-head" data-col="a">A</div><div role="columnheader" class="mem-head selected" data-col="b">B</div><div role="columnheader" class="mem-head" data-col="c">C</div></div>
+    <div role="row" class="memory-row"><div role="rowheader" class="mem-row-label">z = [g,u]</div><div role="cell" class="mem-cell live" data-col="a">写入 z</div><div role="cell" class="mem-cell overlap selected" data-col="b">读取 z</div><div role="cell" class="mem-cell" data-col="c">使用结束</div></div>
+    <div role="row" class="memory-row"><div role="rowheader" class="mem-row-label">h</div><div role="cell" class="mem-cell" data-col="a">未产生</div><div role="cell" class="mem-cell overlap selected" data-col="b">写入 h</div><div role="cell" class="mem-cell live" data-col="c">读取 h</div></div>
+   </div>
+   <div class="memory-note" id="memory-note" aria-live="polite" aria-atomic="true"><strong id="memory-heading">执行 B：保留输入 z 和输出 h</strong><span id="memory-copy">z 是 B 的输入，h 是 B 的输出。B 执行期间，两块空间同时被使用；B 完成后，z 的使用期结束。</span></div>
+   <figcaption class="caption">Execute 返回时，计算可能仍在设备上执行。空间复用需要通过执行流的顺序或同步，保证前一次读取完成后，再覆盖同一块空间。</figcaption>
+  </figure>
+  <p>在这个子图中，z 与 h 的使用期重叠，因此各自占用一块空间。输出 yᵣ 使用 Paddle 提供的地址。<strong>ATB 的内存规划需要同时满足这些读写关系和输出约定。</strong></p>
+  <div class="allocation-types">
+   <p><strong>中间结果：复用使用期不重叠的空间</strong>更大子图中，一个结果用完后，它的空间可以留给后续结果。ATB 根据张量的最后使用位置安排这种复用。</p>
+   <p><strong>临时 workspace：随算子执行而复用</strong>同一执行流上的算子依次运行，使用期不重叠的临时 workspace 可以共用。这种空间也可以由 Paddle 在逐节点调用时统一提供。</p>
+  </div>
+ </section>
+
+ <aside class="closing"><p>这段 FFN 的组图收益，首先来自<strong>减少 Paddle 的节点调度，以及集中准备后的连续下发</strong>。内存收益则取决于子图中有多少使用期不重叠的空间可供复用。</p></aside>
+
+ <footer>
+  <details>
+   <summary>源码与版本</summary>
+   <ol>
+    <li><a href="https://github.com/ShuZihan/PaddleNLP/blob/52c161eb/paddlenlp/experimental/transformers/fused_transformer_layers.py#L644">PaddleNLP FFN 主干</a>：MatMul、SwiGLU、MatMul，以及其后的 AllReduce。</li>
+    <li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b699/src/atb/runner/graph_runner.cpp#L275">ATB GraphRunner</a>：SetupNodes 遍历准备；ExecuteAllRunner 遍历执行；InitTensorMaxNodeMap 分析最后使用节点。</li>
+    <li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b699/example/op_demo/activation/activation_demo.cpp#L60">ATB SwiGLU 示例</a>：ACTIVATION_SWIGLU_FORWARD 可独立创建 Operation。</li>
+    <li><a href="paddle-atb-interview-research.md">版本与历史链路核查</a>：仓库版本、历史 Pass 的定位结果和接入链路。</li>
+   </ol>
+  </details>
+  <p style="margin-top:18px"><a href="paddle-atb-graph-explained.html" download="paddle-atb-guide.html">下载 HTML</a> · <a href="paddle-atb-graph-explained.md">纯文字版本</a> · 2026-10-04</p>
+ </footer>
+ <noscript><style>.segmented,.stages{display:none}</style><p class="scope">图中默认展示 Paddle 逐算子调用和 B 执行阶段；两种接入方式的区别已完整写在正文中。</p></noscript>
+</main>
+<script>
+const modes = {
+ direct: {count:'3',heading:'Paddle 调度三个节点',copy:'A、B、C 各自调用对应的 ATB Operation。Paddle 掌握 z、h 的读写关系，负责安排节点执行和中间内存的使用。'},
+ graph: {count:'1',heading:'ATB 调度内部计算',copy:'Paddle 调用子图节点，传入 x、权重和输出 yᵣ 的地址。ATB 安排 A、B、C 的执行，并管理内部结果 z、h 的空间。'}
+};
+document.querySelectorAll('button[data-mode]').forEach(button=>button.addEventListener('click',()=>{
+ const mode=button.dataset.mode, data=modes[mode];
+ document.getElementById('graph-card').dataset.mode=mode;
+ document.getElementById('entry-count').textContent=data.count;
+ document.getElementById('state-heading').textContent=data.heading;
+ document.getElementById('state-copy').textContent=data.copy;
+ document.querySelectorAll('button[data-mode]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+}));
+const stages={
+ a:{heading:'执行 A：生成中间结果 z',copy:'A 将 gate_proj 和 up_proj 的输出写入 z，保留给 B 读取。h 随后由 B 产生。'},
+ b:{heading:'执行 B：保留输入 z 和输出 h',copy:'z 是 B 的输入，h 是 B 的输出。B 执行期间，两块空间同时被使用；B 完成后，z 的使用期结束。'},
+ c:{heading:'执行 C：读取 h，写入本卡结果',copy:'B 已读完 z，z 的使用期结束。C 继续读取 h，将结果写入 Paddle 提供的输出空间 yᵣ；h 保留到 C 完成。'}
+};
+document.querySelectorAll('button[data-stage]').forEach(button=>button.addEventListener('click',()=>{
+ const stage=button.dataset.stage,data=stages[stage];
+ document.querySelectorAll('button[data-stage]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));
+ document.querySelectorAll('[data-col]').forEach(item=>item.classList.toggle('selected',item.dataset.col===stage));
+ document.getElementById('memory-heading').textContent=data.heading;
+ document.getElementById('memory-copy').textContent=data.copy;
+}));
+</script>
+</body>
+</html>
