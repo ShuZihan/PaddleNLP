@@ -2,7 +2,7 @@
 
 框架机制与 ATB 接入方案，当前为第 1—3 章审阅稿。
 
-网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/atb-guide-site/index.html
+网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/63dfb60ef7f7a7e9b5b3076c12f84a82f40f32cd/index.html
 
 - 第 1 章：生成循环、KV 状态、MP8 FFN 分片与通信。
 - 第 2 章：Paddle 动转静、Pass、执行指令、stream 与内存。
