@@ -2,9 +2,9 @@
 
 框架机制与 ATB 接入方案，第 1—3 章修订审阅稿（2026-10-07）。
 
-网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/a84ad2b8fa7c7dec8f0461cacf51222bba6fdfff/index.html
+网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/7197a151f6e7e32032b7029968fd66afef63998e/index.html
 
-本次修正：1.1 用三行表说明 PCD 的 NPU 注册入口，并对照 torch_npu、vLLM-Ascend 的加载方式与接入层级；总体关系图标明 PCD 后端。
+本次修正：1.1 以 MatMul 调用比较同层的 PCD 与 torch_npu，再解释 vLLM-Ascend 与 torch_npu 配合完成推理引擎适配；加载入口压缩为一句。
 
 - 第 1 章：推理任务、已有基础、适配问题，以及计算实现与图执行的两项选择。
 - 第 2 章：从 FFN 的图记录展开 Pass 改写、实现绑定、指令复用、设备依赖与异步内存回收。
