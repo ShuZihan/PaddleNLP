@@ -6,9 +6,17 @@
 
 ### 1.1 Llama-65B 的推理任务与已有基础
 
-这次适配的目标是通过 Paddle 在昇腾 NPU 上完成 Llama-65B 推理，采用 **MP8、FP16、batch=8、静态推理**。模型定义、权重处理和生成逻辑来自 PaddleNLP；Paddle 提供计算图优化与执行能力；NPU 后端将计算和通信调用交给设备实现。[源码 1](#sources)
+这次适配的目标是通过 Paddle 在昇腾 NPU 上完成 Llama-65B 推理，采用 **MP8、FP16、batch=8、静态推理**。PaddleNLP 提供模型、权重处理与生成逻辑，Paddle 负责图优化与执行，**PCD（PaddleCustomDevice）的 NPU 后端**提供设备与算子实现。[源码 1](#sources)
 
-ATB 是昇腾的 Transformer 推理加速库，既提供计算实现，也支持将多个计算组织成子图。它接在 Paddle 的设备执行侧，上层模型与生成流程仍由 PaddleNLP / Paddle 承接。
+PCD、torch_npu 与 vLLM-Ascend 都通过插件扩展宿主，注册方式与接入层级如下。[源码 11](#sources)
+
+| 组件 | 加载与注册 | 接入职责 |
+| --- | --- | --- |
+| PCD 的 NPU 后端 | Paddle 从 `CUSTOM_DEVICE_ROOT` 加载 `.so`；`InitPlugin` 注册设备接口，加载器再注册 NPU 算子 | 框架设备后端：内存、stream/event、通信与计算实现，供 Paddle 调度 |
+| torch_npu | 导入扩展，也可经 `torch.backends` 自动加载；将预留后端 `PrivateUse1` 命名为 `npu`，注册设备模块与 Dispatcher 算子实现 | 框架设备后端：让 PyTorch 管理 NPU Tensor 并执行算子 |
+| vLLM-Ascend | 经 `vllm.platform_plugins` entry point 注册 `NPUPlatform` | 推理引擎适配：接入 NPU worker、Attention 等；底层设备能力依赖 torch_npu |
+
+ATB 是昇腾 Transformer 推理加速库，提供计算实现与子图执行能力。**PCD 接入后，Paddle 已能调度已适配的 NPU 算子；采用 ATB 组图，则进一步将一段计算的执行组织交给 ATB。**
 
 <!-- figure:background -->
 ```text
@@ -17,8 +25,8 @@ PaddleNLP
                  ↓ 导出静态模型
 Paddle
 计算图优化 · 执行组织
-                 ↓ 调用 NPU 后端
-NPU 后端
+                 ↓ 调用设备与算子接口
+PCD 的 NPU 后端
 计算实现：直接调用 NPU 接口，或使用 ATB 计算 / 子图
 多卡通信：HCCL
 计算与通信均使用设备存储和 stream
@@ -381,3 +389,4 @@ ReduceScatter 使输出继续分片，需要连同下一层的激活布局一起
 8. [Operation 准备与执行](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L520)、[Paddle Context / workspace](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/llama_infer/atb_ops/atb_layers/runner.cc#L202)。当前包装层使用静态 workspace 缓冲区，并发调用还需处理跨 stream 隔离。[Operation Execute 的两个阶段](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1094)、[Runner PreExecute / Execute](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/runner.cpp#L86)。
 9. [GraphRunner 准备与空间](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L304)、[内部逐节点执行](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L946)。图采用独立输出的 SwiGLU；workspace 容量还包括对齐与实际 kernel 需求。 [GraphOperation 创建内部 Runner](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/graph_operation.cpp#L285)、[内部描述与偏移准备](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L699)、[独立设备重放模式](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1069)。当前 Paddle 包装层未调用 SetLaunchMode，沿用默认 KERNEL_LAUNCH_MODE。[GraphRunner 两阶段遍历](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L390)。
 10. [借用 HCCL 域](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/hccl_runner.cpp#L46)、[LinearParallel 分支](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/linear_parallel/linear_parallel_operation.cpp#L617)、[LCOC 分块生产](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_ppmatmul.cce#L962)、[分块归约及缓冲区释放通知](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_allreduce.cce#L210)、[Paddle 直调融合接口](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/fused_mm_allreduce.cc#L22)。当前所查 Llama ATB 适配目录未见外部 HcclComm 注入；此处说明库能力与接入设计。CANN 融合接口与 LCOC 是不同实现，图中的设备流水对应后者。
+11. [Paddle 动态库加载与算子注册](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/platform/init.cc#L161)、[PCD 设备接口注册](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/runtime/runtime.cc#L1031)、[torch_npu 自动加载入口](https://github.com/Ascend/pytorch/blob/9cd8d1f1483f8268944d80392d4aa91fd455339f/setup.py#L827)、[PrivateUse1 与设备模块](https://github.com/Ascend/pytorch/blob/9cd8d1f1483f8268944d80392d4aa91fd455339f/torch_npu/_init/registry/backend.py#L45)、[vLLM-Ascend 插件声明](https://github.com/vllm-project/vllm-ascend/blob/fe85f2bc4a652a0323b53c7cc4a22376f5c9d65e/setup.py#L506)、[NPUPlatform 注册入口](https://github.com/vllm-project/vllm-ascend/blob/fe85f2bc4a652a0323b53c7cc4a22376f5c9d65e/vllm_ascend/__init__.py#L72)。PCD 使用前述固定版本；torch_npu 与 vLLM-Ascend 为 2026-10-07 所查实现，用于对照插件接入层级。
