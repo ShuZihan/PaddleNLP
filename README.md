@@ -8,7 +8,7 @@
 - 第 2 章：解释 Paddle 的图优化、执行指令、计算通信依赖，以及生成循环保留的主机同步。
 - 第 3 章：固定计算实现比较逐 Operation 与 GraphOperation，再分析 Setup / Execute、Attention 分块和计算通信融合。
 
-页面包含 8 幅图解，支持手机、rank 分片与 Setup 状态切换。右上角可保存自包含 HTML，离线阅读和交互无需安装依赖。也提供 [Markdown 文字版](paddle-atb-graph-explained.md)。
+页面包含 8 幅图解。第 1.2 节以双卡数据流说明 FFN 分片的原因与代价，MP8 形状和 rank 选择可展开查看；支持手机阅读与 Setup 状态切换。右上角可保存自包含 HTML，离线阅读和交互无需安装依赖。也提供 [Markdown 文字版](paddle-atb-graph-explained.md)。
 
 源码版本和出处位于页面末尾；数值来自形状推导，未运行 NPU 性能实验。后续章节继续比较 PyTorch、CUDA Graph、原接入取舍及同场景重新设计。
 

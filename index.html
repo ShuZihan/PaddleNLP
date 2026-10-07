@@ -109,6 +109,24 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
  .control-device,.control-host{padding:11px 10px}.control-device>b,.control-host>b{font-size:12px}.control-device>small{font-size:11px}.sync-link{padding:8px 0}.control-branches span{font-size:11px}
 }
 
+.tp-example{font-size:11px;color:var(--muted);margin:-6px 0 10px}
+.tp-input,.tp-sum{max-width:480px;margin:auto;text-align:center;border:1px solid #acbfd6;background:#edf3fb;border-radius:6px;padding:9px 12px;line-height:1.65}
+.tp-input>b,.tp-sum>b{font-size:14px;display:block;font-weight:600}.tp-input>span,.tp-sum>span{font-size:12px;display:block;color:var(--muted)}
+.tp-connector{display:block;width:100%;height:24px;max-width:650px;margin:auto;overflow:visible}.tp-connector path{fill:none;stroke:#89a5c1;stroke-width:1.4;vector-effect:non-scaling-stroke}.tp-connector.merge path{stroke:#75a994}
+.tp-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px;max-width:650px;margin:auto}
+.tp-rank{font-size:12px;text-align:center;color:#456580;margin:2px 0 8px;font-weight:600}
+.tp-stage{border:1px solid #aac1dc;background:#edf3fb;border-radius:6px;padding:10px;text-align:center;line-height:1.65;min-width:0}
+.tp-stage>b{font-size:14px;font-weight:600;display:block}.tp-stage>span{font-size:12px;color:var(--muted);display:block;margin-top:3px}
+.tp-stage.activation{border-color:#a3c9b6;background:#ebf5ef}
+.tp-down{text-align:center;font-size:20px;color:#7392ad;line-height:1.35;padding:3px 0}
+.tp-reason{grid-column:1/-1;display:flex;justify-content:center;align-items:flex-start;gap:12px;margin:12px 0 0;padding:8px 12px;background:#f4f7fa;border-left:2px solid #afc1d2;font-size:12px;line-height:1.65}
+.tp-reason>b{flex-shrink:0;color:#456580;font-weight:600}.tp-reason>span{color:#526b82}
+.tp-sum{border-color:#93c0aa;background:#e7f4ed}.tp-sum>b{color:var(--teal)}
+.tp-cost{display:flex;gap:10px;align-items:flex-start;line-height:1.7;margin-top:14px;padding:10px 12px;background:#fff5e5;border:1px solid #e7d7b6;border-radius:5px;font-size:12px;color:#755a2d}.tp-cost>b{font-weight:600;flex-shrink:0}
+.ffn-more{border-top:1px solid var(--line);margin-top:18px;padding-top:12px}.ffn-more>summary{font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;line-height:1.7}.mp8-explanation{font-size:12px;line-height:1.8;color:var(--muted);margin:15px 0}.ffn-more .control{margin-top:15px}
+@media(max-width:700px){.tp-grid{gap:0 12px}.tp-input,.tp-sum{padding:8px 10px}.tp-input>b,.tp-sum>b{font-size:13px}.tp-input>span,.tp-sum>span{font-size:11px}.tp-rank{font-size:11px}.tp-stage{padding:9px 5px}.tp-stage>b{font-size:12px}.tp-stage>span{font-size:11px}.tp-reason{gap:9px;padding:7px 9px;font-size:11px;margin-top:10px}.tp-down{font-size:18px;padding:2px 0}.tp-cost{font-size:11px;gap:8px;padding:9px 10px}.mp8-explanation{font-size:11px}.ffn-more>summary{font-size:12px}}
+@media print{.ffn-more:not([open])>*:not(summary){display:block!important}}
+
 </style></head>
 <body><div class="topbar"><span>技术审阅 · 第 1—3 章</span><a href="paddle-atb-graph-explained.html" download="paddle-atb-guide-chapters-1-3.html" data-download>保存 HTML ↓</a></div><main><header class="hero"><p class="eyebrow">AI INFRA · 机制与接入设计</p><h1>Paddle 在 NPU 上运行 Llama-65B</h1>
 <p>框架机制与 ATB 接入方案 · 第 1—3 章修订稿 · 2026-10-07</p>
@@ -137,9 +155,26 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
 </div></figure>
 <p>第二种方式将三次 Paddle 节点调度变为一次，并把中间张量交给 ATB 规划。<strong>ATB 内部仍需执行这些计算，kernel 数量和中间数据读写不会仅因封装而减少。</strong> 同时，Paddle 后续的融合 Pass 无法再匹配子图内部的计算。<a href="#sources">源码 3、9</a></p>
 <p>ATB 算子实现带来的加速可以通过第一种方式取得；第二种方式还需要解释组图额外省掉了哪些工作。后文分别追踪 Paddle 已有的优化、ATB 的执行准备与内存规划，以及真正改变设备计算的融合实现。</p>
-<h3 id="section-1-2">1.2 FFN 的分片让非线性留在本卡，把归约放到 down 之后</h3>
-<p>对照采用 Llama-65B 的 <strong>MP8、FP16、batch=8 静态推理</strong>。按 <code>xW</code> 记权重：hidden=8192，intermediate=22016，每个 rank 负责一组 2752 个中间通道 Iᵣ。这里将本卡 gate/up 合并为第一个 Linear，并沿用 A、B、C 标记三段计算；AllReduce 保留在 Paddle。</p>
-<figure id="fig-ffn"><figcaption>gate/up 列切、down 行切：本地计算后归约</figcaption>
+<h3 id="section-1-2">1.2 本地完成 SwiGLU，最后归约 down 输出</h3>
+<p>这套分片让 SwiGLU 前无需归约，也无需收集完整的中间激活 h。先用双卡展示数据流，MP8 使用相同的分片方式。</p>
+<figure id="fig-ffn"><figcaption>列切后本地计算，行切后按元素求和</figcaption>
+<div class="tp-example">双卡示意</div>
+<div class="tp-input"><b>完整输入 x</b><span>两卡复制</span></div>
+<svg class="tp-connector" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M150 0 V10 M75 24 V10 H225 V24"/></svg>
+<div class="tp-grid">
+ <div class="tp-rank">卡 0 · 前半通道</div><div class="tp-rank">卡 1 · 后半通道</div>
+ <div class="tp-stage"><b>gate/up 前半列</b><span>本地 g、u</span></div><div class="tp-stage"><b>gate/up 后半列</b><span>本地 g、u</span></div>
+ <div class="tp-reason"><b>列切</b><span>每个本地通道已累加全部输入<br>可直接做非线性，无需先归约</span></div>
+ <div class="tp-down">↓</div><div class="tp-down">↓</div>
+ <div class="tp-stage activation"><b>SwiGLU</b><span>h 的前半通道</span></div><div class="tp-stage activation"><b>SwiGLU</b><span>h 的后半通道</span></div>
+ <div class="tp-down">↓</div><div class="tp-down">↓</div>
+ <div class="tp-stage"><b>down 前半行</b><span>部分和 y₀</span></div><div class="tp-stage"><b>down 后半行</b><span>部分和 y₁</span></div>
+ <div class="tp-reason"><b>行切</b><span>对应本地 h，无需 AllGather<br>输出通道齐全，数值仍是部分和</span></div>
+</div>
+<svg class="tp-connector merge" viewBox="0 0 300 24" preserveAspectRatio="none" aria-hidden="true"><path d="M75 0 V12 H225 V0 M150 12 V24"/></svg>
+<div class="tp-sum"><b>AllReduce SUM</b><span>两卡各得完整 y = y₀ + y₁</span></div>
+<div class="tp-cost"><b>代价</b><span>输入与最终输出复制；下一层等待归约结果。</span></div>
+<details class="ffn-more"><summary>MP8 的形状与 A / B / C 编号</summary><div class="mp8-explanation">Llama-65B · MP8 / FP16 / batch=8 静态推理。按 xW 记权重，hidden=8192，intermediate=22016，每卡负责 2752 个中间通道。</div>
 <div class="control js-only"><label for="rank-select">查看分片</label><select id="rank-select"><option value="0">rank 0</option><option value="1">rank 1</option><option value="2">rank 2</option><option value="3">rank 3</option><option value="4">rank 4</option><option value="5">rank 5</option><option value="6">rank 6</option><option value="7">rank 7</option></select></div>
 <div class="range" aria-live="polite">Iᵣ = <strong id="channel-range">[0, 2752)</strong> · 每 rank 2752 个通道</div>
 <div class="weight-pair">
@@ -154,9 +189,9 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
  <div><b>C · Linear</b><span>yᵣ = hWdown[Iᵣ, :]<small>[T, 8192]</small></span></div>
 </div>
 <div class="partials"><span class="partial chosen" data-rank="0">y<sub>0</sub></span><span class="partial " data-rank="1">y<sub>1</sub></span><span class="partial " data-rank="2">y<sub>2</sub></span><span class="partial " data-rank="3">y<sub>3</sub></span><span class="partial " data-rank="4">y<sub>4</sub></span><span class="partial " data-rank="5">y<sub>5</sub></span><span class="partial " data-rank="6">y<sub>6</sub></span><span class="partial " data-rank="7">y<sub>7</sub></span></div>
-<div class="reduce-result"><b>↓ AllReduce SUM</b><span>y = Σᵣyᵣ · 各 rank 得到完整 [T, 8192]</span></div></figure>
-<p>gate/up <strong>列切</strong>后，每个本地输出通道都已累加全部输入，SwiGLU 可直接计算。若沿输入维度切，g、u 只是部分和，必须先归约再做 SiLU。down <strong>行切</strong>则直接消费本地 h，省去中间通道的 AllGather；其输出只包含 Iᵣ 的贡献，因此要按元素求和。</p>
-<p>AllReduce 同时完成求和与结果复制，使下一层继续接收完整的 x。ReduceScatter 会改变后续激活的分布，需要连同下一层一起设计。本卡 gate/up 拼接则只合并两次投影调用：它不改变通道归属和归约关系。<a href="#sources">源码 2</a></p>
+<div class="reduce-result"><b>↓ AllReduce SUM</b><span>y = Σᵣyᵣ · 各 rank 得到完整 [T, 8192]</span></div><div class="mp8-explanation">gate/up 若按输入维度切分，各卡得到 g、u 的部分和，必须先归约再做非线性。ReduceScatter 则使最终输出继续分片，需要连同下一层布局一起设计。</div></details></figure>
+<p>本卡将 gate/up 权重拼接，合为 <strong>A · Linear</strong>，随后是 <strong>B · SwiGLU → C · Linear</strong>；拼接只合并投影调用，不改变归约关系。<a href="#sources">源码 2</a></p>
+<p>这三步可作为 ATB 本地子图。普通组图保留中间读写和归约等待；计算通信融合怎样缩短等待，见<a href="#section-3-4">第 3.4 节</a>。</p>
 <h3 id="section-1-3">1.3 Prefill 与 Decode 需要优化不同的重复工作</h3>
 <p><code>T</code> 是一次前向参与计算的 token 数。去 padding 后，Prefill 的 <code>T=ΣSᵢ</code>；8 条序列均有效时，Decode 的 <code>T=8</code>。</p>
 <table><thead><tr><th>对照项</th><th>Prefill</th><th>Decode</th></tr></thead><tbody><tr><td data-label="对照项"><span class="cell-value">GEMM 权重复用</span></td><td data-label="Prefill"><span class="cell-value">同一权重服务较多 token</span></td><td data-label="Decode"><span class="cell-value">较少 token 分担权重读取</span></td></tr><tr><td data-label="对照项"><span class="cell-value">KV 变化</span></td><td data-label="Prefill"><span class="cell-value">写入 prompt 的 [0,S)</span></td><td data-label="Decode"><span class="cell-value">逐步追加位置 S、S+1；读取长度 S+1、S+2</span></td></tr><tr><td data-label="对照项"><span class="cell-value">每次 AllReduce 输入</span></td><td data-label="Prefill"><span class="cell-value">8 条等长 3072 token：384 MiB</span></td><td data-label="Decode"><span class="cell-value">T=8：128 KiB</span></td></tr><tr><td data-label="对照项"><span class="cell-value">需要追踪的开销</span></td><td data-label="Prefill"><span class="cell-value">大 GEMM、Attention 中间数据与大消息通信</span></td><td data-label="Decode"><span class="cell-value">权重 / KV 读取、重复准备、提交间隙与 collective 延迟</span></td></tr></tbody></table>

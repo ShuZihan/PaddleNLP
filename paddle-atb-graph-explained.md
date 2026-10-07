@@ -28,31 +28,48 @@ ATB 子图执行
 
 ATB 算子实现带来的加速可以通过第一种方式取得；第二种方式还需要解释组图额外省掉了哪些工作。后文分别追踪 Paddle 已有的优化、ATB 的执行准备与内存规划，以及真正改变设备计算的融合实现。
 
-### 1.2 FFN 的分片让非线性留在本卡，把归约放到 down 之后
+### 1.2 本地完成 SwiGLU，最后归约 down 输出
 
-对照采用 Llama-65B 的 **MP8、FP16、batch=8 静态推理**。按 `xW` 记权重：hidden=8192，intermediate=22016，每个 rank 负责一组 2752 个中间通道 Iᵣ。这里将本卡 gate/up 合并为第一个 Linear，并沿用 A、B、C 标记三段计算；AllReduce 保留在 Paddle。
+这套分片让 SwiGLU 前无需归约，也无需收集完整的中间激活 h。先用双卡展示数据流，MP8 使用相同的分片方式。
 
 <!-- figure:ffn -->
 ```text
-gate/up 列切：Wgate[:,Iᵣ]、Wup[:,Iᵣ]，各 [8192,2752]
-down 行切：Wdown[Iᵣ,:]，[2752,8192]
+                    完整输入 x，两卡复制
+                   ↙                 ↘
+卡 0         gate/up 前半列        gate/up 后半列        卡 1
+             部分输出通道         其余输出通道
+             各通道值完整         各通道值完整
+                   ↓                 ↓
+                SwiGLU            SwiGLU
+             本地 h 前半段        本地 h 后半段
+                   ↓                 ↓
+             down 前半行          down 后半行
+             部分和 y₀            部分和 y₁
+                   ↘                 ↙
+                    AllReduce SUM
+                 两卡各得完整 y₀ + y₁
 
-本卡拼接 W₁ᵣ = [Wgate[:,Iᵣ], Wup[:,Iᵣ]]，[8192,5504]
+列切：每个本地通道已累加全部输入，可以直接做非线性。
+行切：down 的输入行对应本地 h，无需 AllGather 完整 h。
+代价：输入与最终输出复制；下一层等待归约结果。
 
-x [T,8192]，各 rank 复制
-  A · Linear   z=[gᵣ,uᵣ]=xW₁ᵣ             [T,5504]
-       ↓
-  B · SwiGLU   h=SiLU(gᵣ)⊙uᵣ               [T,2752]
-       ↓
-  C · Linear   yᵣ=hWdown[Iᵣ,:]             [T,8192]
-       ↓
-  AllReduce SUM：y=Σᵣyᵣ，各 rank 得到完整激活 [T,8192]
+MP8 形状与后文编号（HTML 中可展开）：
+配置：Llama-65B，MP8 / FP16 / batch=8，静态推理。
+按 xW 记权重：hidden=8192，intermediate=22016，每卡 2752 个中间通道 Iᵣ。
+Wgate[:,Iᵣ]、Wup[:,Iᵣ]：各 [8192,2752]；本卡拼接 W₁ᵣ：[8192,5504]。
+Wdown[Iᵣ,:]：[2752,8192]。
+A · Linear：z=xW₁ᵣ=[gᵣ,uᵣ]，[T,5504]。
+B · SwiGLU：h=SiLU(gᵣ)⊙uᵣ，[T,2752]。
+C · Linear：yᵣ=hWdown[Iᵣ,:]，[T,8192]。
+AllReduce SUM：y=Σᵣyᵣ，各 rank 得到完整 [T,8192]。
+若 gate/up 改为输入维度切分，g/u 为部分和，必须先归约再做非线性。
+ReduceScatter 使输出继续分片，需要连同下一层的激活布局一起设计。
 ```
 <!-- /figure -->
 
-gate/up **列切**后，每个本地输出通道都已累加全部输入，SwiGLU 可直接计算。若沿输入维度切，g、u 只是部分和，必须先归约再做 SiLU。down **行切**则直接消费本地 h，省去中间通道的 AllGather；其输出只包含 Iᵣ 的贡献，因此要按元素求和。
+本卡将 gate/up 权重拼接，合为 **A · Linear**，随后是 **B · SwiGLU → C · Linear**；拼接只合并投影调用，不改变归约关系。[源码 2](#sources)
 
-AllReduce 同时完成求和与结果复制，使下一层继续接收完整的 x。ReduceScatter 会改变后续激活的分布，需要连同下一层一起设计。本卡 gate/up 拼接则只合并两次投影调用：它不改变通道归属和归约关系。[源码 2](#sources)
+这三步可作为 ATB 本地子图。普通组图保留中间读写和归约等待；计算通信融合怎样缩短等待，见[第 3.4 节](#section-3-4)。
 
 ### 1.3 Prefill 与 Decode 需要优化不同的重复工作
 
