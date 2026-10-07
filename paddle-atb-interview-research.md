@@ -1,6 +1,6 @@
 # 源码版本与本轮核查
 
-更新：2026-10-06。正文目前覆盖第 1—3 章，完整出处位于 HTML 和 Markdown 的来源部分。
+更新：2026-10-07。正文目前覆盖第 1—3 章，完整出处位于 HTML 和 Markdown 的来源部分。
 
 | 项目 | 版本 | 用途 |
 | --- | --- | --- |
@@ -9,12 +9,12 @@
 | PaddleCustomDevice | d0e25eef | 当前 NPU / ATB 接入、Pass、workspace 与融合接口 |
 | ATB | 4827b699 | Operation、Runner、GraphOperation、Attention 与通信实现 |
 
-本轮新增依据：
+正文解释的关键机制：
 
 - 导出 generate 包含 Decode 循环，一次 Predictor 调用可生成多个 token；普通 while 路径仍由主机推进，设备条件需要同步回读。
 - 所查 FlashAttention 实现通过分块和在线 Softmax 避免物化完整 S×S 张量，同时保留块级全局 scratch 读写。
 - 固定 shape 与地址不足以决定 Attention 配置复用：部分 Runner 读取 host 长度并更新内部参数。
-- GraphOperation 集中准备和内存规划，普通 GraphRunner 仍逐节点提交。
+- 以相同 ATB FFN 实现比较逐 Operation 和 GraphOperation：公开 Setup / Execute 调用从各 3 次变为各 1 次，内部 Runner 准备、配置缓存和设备提交仍存在。独立输出 SwiGLU 的 z / h 在 T=8、FP16 时同时存活 129 KiB，组图改变空间管理归属。
 - LCOC MatmulAllReduce 用设备 flag 协调分块生产、归约与缓冲区复用；它与 Linear 后接 AllReduce 的组图路径不同。
 
 旧版 llama65B_mp8_dynamic_batch Pass 的完整实现尚未恢复；当前 Pass 示例未包含 AllReduce，不能据此推定历史整模型替换范围。本文未运行设备性能实验。
