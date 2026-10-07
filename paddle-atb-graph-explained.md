@@ -1,36 +1,268 @@
 # Paddle 在 NPU 上运行 Llama-65B
 
-框架机制与 ATB 接入方案 · 第 1—3 章修订稿 · 2026-10-07
+框架机制与 ATB 接入方案 · MP8 / FP16 / batch=8 静态推理 · 第 1—3 章
 
 ## 1. 算子接入与子图接入
 
-### 1.1 相同计算实现下的执行差异
+### 1.1 三条接入路径的计算与调度归属
 
-ATB 是昇腾的 Transformer 推理加速库。Paddle 可逐个调用其中的算子，也可将一段计算交给 ATB 组图执行。下面采用相同的 Linear、SwiGLU 实现，对照同一段 FFN。
+ATB 为昇腾提供 Transformer 计算实现与组图执行接口。Paddle 可以保留 FFN 的计算结构，分别调用 CANN 或 ATB 的计算实现；也可以用一个节点调用 ATB GraphOperation。接入位置决定了 **Paddle 能继续优化哪些计算，以及执行时由谁准备、调度和管理中间张量**。
 
-<!-- figure:boundary -->
+<!-- figure:architecture -->
 ```text
-Paddle 逐节点执行
-  [Linear] → [SwiGLU] → [Linear]
-      ↓          ↓          ↓
-   ATB 算子   ATB 算子   ATB 算子
-  中间张量：Paddle 管理
+模型 → Paddle 静态图 → Pass 改写 → 执行指令
+                                 │
+             ┌───────────────────┼───────────────────┐
+             ↓                   ↓                   ↓
+       直接接计算接口        接 ATB Operation      接 ATB GraphOperation
+       Paddle 多个节点       Paddle 多个节点       Paddle 一个子图节点
+             ↓                   ↓                   ↓
+       CANN / 自定义实现      ATB 节点准备         ATB 内部图与 Runner
+             ↓                   ↓                   ↓
+                    向 NPU stream 提交设备计算
 
-ATB 子图执行
-  Paddle [FFN 节点]
-              ↓
-  ATB [Linear → SwiGLU → Linear]
-  中间张量：ATB 规划
+                         直接接接口       ATB Operation     ATB GraphOperation
+节点间调度                Paddle          Paddle            ATB（子图内部）
+计算准备                  所调用实现       各 Operation      GraphRunner 组织各节点
+节点间中间张量的规划      Paddle          Paddle            ATB
+底层存储与执行 stream     Paddle 接入层提供，并遵守后端的空间、地址和生命周期契约
+
+比较片段：gate/up 投影 → SwiGLU → down 投影；AllReduce 保留在 Paddle。
 ```
 <!-- /figure -->
 
-第二种方式将三次 Paddle 节点调度变为一次，并把中间张量交给 ATB 规划。**ATB 内部仍需执行这些计算，kernel 数量和中间数据读写不会仅因封装而减少。** 同时，Paddle 后续的融合 Pass 无法再匹配子图内部的计算。[源码 3、9](#sources)
+这里有两项独立选择：**选用哪个计算实现，交出多大范围的图执行职责。** 第二章先看 Paddle 自身如何完成这些职责；第三章沿 ATB 的内部执行，分析多一层组图实际改变的工作。
 
-ATB 算子实现带来的加速可以通过第一种方式取得；第二种方式还需要解释组图额外省掉了哪些工作。后文分别追踪 Paddle 已有的优化、ATB 的执行准备与内存规划，以及真正改变设备计算的融合实现。
+### 1.2 初始化与重复执行中的资源分工
 
-### 1.2 本地完成 SwiGLU，最后归约 down 输出
+图、权重和通信域可以跨多步推理保留；输入内容、KV 和有效长度逐步变化。准备结果能否复用，取决于变化是否影响实现选择、分块或空间需求。[源码 1、7、8](#sources)
 
-这套分片让 SwiGLU 前无需归约，也无需收集完整的中间激活 h。先用双卡展示数据流，MP8 使用相同的分片方式。
+<!-- figure:resources -->
+```text
+资源                  建立与持有                            重复执行中的变化
+Paddle 图 / 指令       导出图；加载后构建执行指令              复用结构，推进本轮调用
+权重                  按 rank 分片和布局处理后载入 NPU        保留数据与地址
+ATB Operation / Runner 适配层持有 Operation，内部保存准备状态  检查参数与描述，复用或更新配置
+KV Cache              Paddle 侧提供持久存储                  Prefill 写入；Decode 追加并更新有效长度
+输出 / workspace      Paddle 分配；ATB 返回容量、内部维护偏移  更新地址，容量不足时重新申请
+stream / 通信域       框架及后端初始化并复用                  按依赖提交，执行完成前保持资源有效
+
+Prefill：较多 token 参与计算，写入 prompt KV。
+Decode：重复执行前向，追加 KV；FFN 形状可稳定，Attention 有效长度继续增长。
+```
+<!-- /figure -->
+
+后文用同一段 FFN 追踪图、指令和临时空间，用 Attention / KV 追踪跨步状态。权重切分的原因与归约关系放在文末配套背景中。
+
+## 2. Paddle 静态图的优化与 NPU 执行
+
+### 2.1 动转静保留计算与状态，Pass 改变执行边界
+
+PaddleNLP 将前向、采样和 Decode 循环一并导出。`to_static` 将模型代码中的 Tensor 运算转换为 Program：算子保存类型、输入输出和属性，变量保存 dtype、shape 等描述；Tensor 条件的 while 转为控制流算子，循环体放入子 Block。`InputSpec` 中的动态维度在运行时取值，因此每步长度增长可以沿用同一结构。权重、KV、长度和停止状态进入图后，执行器能够区分计算关系与循环携带的状态。[源码 1、3](#sources)
+
+Pass 对这个结构做模式匹配和替换。当前 Llama Pass 将下图中的 Attention 与 FFN 模式替换为 `fused_blha_layer_op`：原权重接到新节点，epsilon、transpose 等属性从匹配节点复制，原输出的消费者改接 `hidden_out`。**替换改变了计算的可见范围；节点内部执行几个 kernel，由注册实现决定。**
+
+<!-- figure:paddle_pass -->
+```text
+Program 中的一层                         匹配边界
+hidden → Norm → QKV → Attention → out → Norm → A → z → B → h → C
+A = gate/up 投影；B = SwiGLU；C = down 投影
+          ↑       ↑       ↑                 ↑   ↑               ↑
+        权重    权重   KV / 长度 / RoPE      权重 W₁              W₂
+
+Pass 替换
+hidden ───────────────┐
+原权重、KV、长度、RoPE ├→ fused_blha_layer_op → hidden_out → 原消费者
+epsilon、transpose ──┘
+
+A / B / C 的连接与 z / h 从 Paddle 图中移除，交给节点内部实现。
+同一节点若直接调用融合 kernel，无需再创建另一张计算图。
+```
+<!-- /figure -->
+
+这种改写必须保留外部可观察的结果和状态更新；仍被边界外消费的中间量不能直接删掉。顺序也影响可用优化：先将 `matmul_v2` 改成自定义 Linear 节点，依赖原类型的整层 Pass 就无法匹配；先替换整层，后续 Pass 又看不到内部 FFN。逐算子注册 NPU 实现则可以保留原节点类型，让 Paddle 继续进行模式融合和布局处理。[源码 3](#sources)
+
+### 2.2 执行器保存指令，后端仍需准备和提交
+
+改写后的图还需变成可调用的指令。首次构建时，执行器将变量名映射到 Scope 中的 Tensor 对象，依据算子、设备、dtype 和 layout 选择实现，按需插入数据转换，再建立依赖、事件与最后使用信息。保存的是实现入口和变量绑定；Tensor 持有的实际地址与动态形状可随运行更新。
+
+<!-- figure:instructions -->
+```text
+首次构建
+Program / Block
+  → 选择实现，绑定输入输出变量
+  → 建立读写依赖、stream / event、最后使用信息
+  → 预计算拓扑执行顺序
+
+重复推理
+沿保存的顺序逐条调用：等待事件 → 后端调用 → 检查回收 → 记录事件
+                                  ↓
+                     CANN：GetWorkspaceSize → 执行接口
+                     ATB： Setup → Execute
+                                  ↓
+                       向 stream 提交设备任务
+```
+<!-- /figure -->
+
+通用执行器可以按前序依赖计数选择就绪指令；所查推理路径进一步保存拓扑顺序，在同一主机线程逐条调用，减少重复就绪判断和线程切换。它已复用了图分析与实现选择，但后端调用仍然发生：CANN 准备接口产生 executor 和 workspace 需求，执行接口接收本次空间与 stream；ATB 使用 Setup／Execute，配置怎样复用见下一章。[源码 4](#sources)
+
+**静态结构复用没有取消主机推进。** 单个异步指令返回时，设备工作可能尚未完成；所查 CustomDevice 执行路径在一次 `RunImpl` 末尾还等待默认设备上下文的 stream。外层普通 while 由主机调用循环体执行器，停止条件若在 NPU 上，还要同步拷回 CPU 才能判断下一步。把循环体中的前向替换成 ATB 节点，这些循环控制仍保留。[源码 3、4](#sources)
+
+### 2.3 依赖同时约束执行顺序与存储复用
+
+回到 MP8 FFN 的 `C → AllReduce → 下一层`：C 输出本 rank 的部分和 yᵣ，AllReduce 得到完整结果 y。C 指令返回后，主机可以继续提交通信，但 AllReduce 必须等 yᵣ 在设备上写完；下一层又必须等归约完成。同流靠提交顺序保证，跨流靠事件保证。因此，拓扑顺序允许主机提前提交，设备依赖仍严格成立。
+
+<!-- figure:streams -->
+```text
+计算流   C 写 yᵣ → record ready ───────────── wait done → 下一层读取 y
+通信流                 wait ready → AllReduce → record done
+
+指令返回：该次主机调用结束          事件完成：相应设备工作完成
+
+z 的存活期
+A 分配并写入 → B 提交读取 → 主机最后使用计数归零 → B 设备读取完成
+                              ↓                    ↓
+                         进入回收流程          存储可安全复用
+```
+<!-- /figure -->
+
+Paddle 依据读写关系计算最后使用，而非只看算子在文件中的位置。z 仅被 B 消费时，在 B 之后检查回收；若还有并行消费者，就要等所有末端使用者提交完毕。**引用计数归零只确定逻辑寿命结束。** Event GC 将内存持有对象保留到设备事件完成；采用 stream-safe allocator 的路径则记录使用流，防止释放后的空间过早被另一条流复用。h 在 C 后按相同规则处理。[源码 5](#sources)
+
+KV 跨 step 存活，不能按临时 z、h 回收。原地更新和别名还引入写后读、读后写约束：若新节点只声明读取 KV、内部却修改它，外层依赖分析不会自动识别这次写入。collective 也有张量关系之外的顺序要求：两个互不依赖的归约，在各 rank 上仍须按一致次序执行。Paddle 可按 `ring_id` 识别通信节点并补充顺序依赖；融合节点需要保留相应信息或等价控制依赖。
+
+GPU 与 NPU 都需要上述约束，具体保障取决于调用路径。ProcessGroupNCCL／ProcessGroupCustom 通过事件连接计算与通信流，并按 allocator 配置记录跨流存储使用；静态节点也可经 CommContext 直接提交，此时没有 ProcessGroup Task 代管。StreamAnalyzer 对 NCCL 的特定通信流另有处理，NPU 接入必须对应 kernel 实际使用的 stream 建立事件与存储保留。只将计算替换为 ATB，Paddle 已有的这些职责仍然存在；连通信一起接管，则要一并实现这些执行契约。[源码 5](#sources)
+
+## 3. ATB 的计算收益与组图增量
+
+### 3.1 固定计算实现后，组图改变调用与空间管理
+
+**ATB 将计算定义与执行状态分开。** Operation 保存算子参数、校验输入并推导输出；Runner 负责选定实现的准备和提交。GraphOperation 也是 Operation，但它保存的是节点和 tensor ID 的连接关系，首次准备时据此创建 GraphRunner 及各节点的 Runner。[源码 9](#sources)
+
+<!-- figure:graph -->
+```text
+固定计算：A gate/up 投影 → z → B SwiGLU → h → C down 投影 → yᵣ
+固定条件：相同实现、布局与 stream；AllReduce 留在 Paddle
+
+逐 Operation 接入                   GraphOperation 接入
+Paddle 指令 A → Operation A         Paddle 一条指令 → GraphOperation
+Paddle 指令 B → Operation B                            │
+Paddle 指令 C → Operation C                         GraphRunner
+                 │                                   │
+              各自 Runner                        Runner A → B → C
+
+公开 Setup/Execute：3 组             公开 Setup/Execute：1 组
+节点准备与设备提交：A、B、C           内部准备与设备提交：仍有 A、B、C
+z / h：Paddle 张量                  z / h：ATB 规划的 workspace 区间
+
+执行中的存活期（SwiGLU 使用独立输出）：
+             A                  B                  C
+z            写入 ━━━━━━━━━━━━━ 读取结束
+h                               写入 ━━━━━━━━━━━━━ 读取结束
+                                ↑ z、h 同时存活
+scratch      使用 ───────────── 顺序复用 ────────── 顺序复用
+```
+<!-- /figure -->
+
+GraphRunner 按节点顺序传播张量描述，记录最后使用位置，再规划中间张量的内存偏移。这里的“释放”发生在规划阶段：它允许后续节点复用某个区间；运行时只需用 **workspace 基址 + 偏移** 得到地址。独立输出的 B 同时读取 z、写入 h，两者必须占用不同区间。单流 kernel scratch 则可按节点最大需求预留，依次复用。
+
+在使用设备 tiling 缓冲区的路径上，GraphRunner 还会汇总各节点的 tiling 数据。当前接入使用普通提交模式，Execute 依次调用内部 Runner；外层指令减少后，内部准备和提交的次数仍由这些 Runner 决定。ATB 也提供独立的设备重放模式，其捕获与复用条件放在第四章分析。
+
+### 3.2 Setup 准备执行配置，Execute 绑定并提交
+
+**Setup 将输入规格转成可执行配置，Execute 将配置应用于本次数据。** 前者选择 kernel、计算 tiling 和临时空间；后者更新地址、准备 launch 参数并向 stream 提交。tiling 包括分块尺寸、核间工作分配等信息，决定同一实现如何处理当前形状。
+
+<!-- figure:setup -->
+```text
+Operation：保存参数与 Runner
+    │
+    ├─ InferShape(输入描述) → 输出描述 → 调用方分配输出
+    │
+    ├─ Setup(VariantPack, Context)
+    │      │  VariantPack = 张量描述 + deviceData / hostData
+    │      ├─ 首次创建 Runner；准备或复用执行配置
+    │      └─ 返回 workspace 容量
+    │                 ↓ 调用方提供存储
+    └─ Execute(VariantPack, workspace, Context)
+           更新输入/输出地址与内部偏移
+           → 传输 tiling 或组织 launch 参数
+           → 向 Context 的 stream 提交
+           → host 返回 ─── 设备继续执行 ─── 完成后允许复用存储
+
+Context 提供 stream 和 tiling 缓冲区；输出、KV 与 workspace 存储由 Paddle 持有。
+InferShape 是输出推导接口；适配层也可使用 Paddle 已推导的输出描述。
+```
+| 本次变化 | 准备结果如何处理 | 本次执行如何更新 |
+|---|---|---|
+| 首次调用 | 创建 Runner，准备 tiling、内部描述和空间规划 | 绑定已分配的输出与 workspace |
+| 规格相同，仅输入或输出地址变化 | 可复用依赖规格的配置 | 换成新地址，仍提交计算 |
+| token 数、dtype、format 或算子参数变化 | 重做受影响的配置和空间规划 | 使用新配置；容量不足时扩容 |
+| KV 容量不变，有效长度增长 | 长度参与 host 准备的 Attention 需更新内部参数 | 使用当前 KV、长度和位置 |
+<!-- /figure -->
+
+
+当前 Paddle 包装层每次都调用 Setup。OpsRunner 的缓存检查包含参数是否更新、是否已有准备结果及输入 TensorDesc 是否相同；动态修改内部计算的 Runner 还走自己的更新路径。**命中缓存省下的是部分准备工作**：地址重新绑定、提交和设备计算继续执行。所查 Attention Runner 从 host 长度数据更新 qSeqLen／kvSeqLen，说明同 shape 仍可能需要重新准备。[源码 7](#sources)
+
+ATB 返回的 workspace 需求包含 kernel scratch 和内部中间张量；真正的设备内存由当前 Paddle 包装层分配。该层按 stream 缓存 Context，并使用按容量扩大的静态 workspace，扩容前等待 stream。单流顺序执行可以复用这块空间；多 stream 并发时必须隔离存储或建立事件依赖，直到最后一次设备访问结束。KV 则跨步保存，不能作为本次执行结束即可复用的临时空间。[源码 8](#sources)
+
+### 3.3 Attention 的分块实现直接改变中间数据
+
+**融合 Attention 的直接收益是减少中间数据的物化与读写。** 所查 ATB FP16 FlashAttention 路径用 Cube 计算 QK／PV，用 Vector 处理 Softmax；它按块处理 K、V，并累积当前 Q 块的输出，无需保存完整 score 和 probability。[源码 6](#sources)
+
+<!-- figure:attention -->
+```text
+分离实现：QKᵀ → score [S,S] → Softmax → probability [S,S] → PV
+分块实现：固定 Q 块 → 读取 Kⱼ、Vⱼ → 更新 m、l、o → 下一块
+
+batch=8、每 rank 8 个头、S=3072：
+一份完整 FP16 score = 8 × 8 × 3072² × 2 = 1.125 GiB / rank
+```
+<!-- /figure -->
+
+```text
+每行状态：m = 已处理得分的最大值；l = 指数和；o = 未归一化输出
+当前得分块 sⱼ 已包含 scale / mask：
+
+初始：m = −∞，l = 0，o = 0
+m′ = max(m, max(sⱼ))          pⱼ = exp(sⱼ − m′)
+l′ = exp(m − m′) · l + sum(pⱼ)
+o′ = exp(m − m′) · o + pⱼVⱼ
+全部块处理后：输出 = o / l
+```
+
+新块提高最大值时，旧的 l、o 一起重新缩放，保持相同的归一化基准，因此逐块累积仍可得到完整 Attention 的结果。所查 NPU 实现仍使用块级全局 scratch 在 Cube／Vector 间传递数据；减少的是完整 S² 中间张量及其读写。
+
+这套实现可通过单个 Attention Operation 接入 Paddle。直接调用 CANN 融合 Attention 也是同类接入方式；二者的差异落在具体 kernel、支持的布局及动态长度处理上。
+
+### 3.4 计算通信融合把等待细化到分块
+
+**同一结果的计算与归约，要出现重叠，就必须让通信提前消费已完成的部分。** 普通 Linear → AllReduce 以整个输出作为依赖单位；仅将两个 Operation 放进 GraphOperation，仍保留这个依赖。ATB 的 LCOC MatmulAllReduce 则在设备内部按结果块协作。[源码 10](#sources)
+
+<!-- figure:overlap -->
+```text
+普通调用：MatMul 全部完成 ───────────→ AllReduce
+
+LCOC：
+Cube       计算块 0 ──→ 计算块 1 ──→ 计算块 2
+                  ↓ 就绪 flag    ↓ 就绪 flag
+Vector            归约块 0 ─────→ 归约块 1 ─────→ 归约块 2
+                  ↓ 释放 flag
+Cube       循环复用缓冲区前，等待该位置的归约完成
+
+局部就绪 flag：连接本卡的计算与归约
+跨 rank 同步：保证对应结果块可参与归约
+释放 flag：避免覆盖仍被通信读取的缓冲区
+```
+<!-- /figure -->
+
+设备内的就绪与释放协议将整段依赖细化为分块依赖，允许后续块的计算和先前块的归约同时推进。分块也增加同步并占用执行资源；Decode 输出较小时，可重叠的计算量有限，收益取决于分块和通信开销。Paddle 已有直调 `aclnnMatmulAllReduce` 的入口，可以局部接入同类能力；它与 LCOC 的具体实现需分别分析。
+
+通信 Operation 还需继承框架的资源约束。ATB HCCL 路径可借用外部 `HcclComm`，销毁责任留在 Paddle；LCCL 使用自己的 `LcalComm`。调用使用 Context 的 stream，直接 HCCL 路径不经过 Paddle ProcessGroup 的 Task 和存储保留逻辑，适配层因而要接好事件、内存生命周期及 collective 顺序。第五章将在这些机制上设计计算流与通信流的统一管理。
+
+## 配套背景：MP8 FFN 的分片与归约
+
+下图按 xW 记权重，T 是一次前向参与计算的 token 数；8 条序列均有效时，Decode 的 T=8。
+
+gate/up 按输出通道切分，使本卡得到的每个通道都已完成输入维度的累加，可直接执行 SwiGLU；down 按输入通道切分，与本地激活对应，输出由各卡部分和归约得到。
 
 <!-- figure:ffn -->
 ```text
@@ -67,191 +299,7 @@ ReduceScatter 使输出继续分片，需要连同下一层的激活布局一起
 ```
 <!-- /figure -->
 
-本卡将 gate/up 权重拼接，合为 **A · Linear**，随后是 **B · SwiGLU → C · Linear**；拼接只合并投影调用，不改变归约关系。[源码 2](#sources)
-
-这三步可作为 ATB 本地子图。普通组图保留中间读写和归约等待；计算通信融合怎样缩短等待，见[第 3.4 节](#section-3-4)。
-
-### 1.3 Prefill 与 Decode 需要优化不同的重复工作
-
-`T` 是一次前向参与计算的 token 数。去 padding 后，Prefill 的 `T=ΣSᵢ`；8 条序列均有效时，Decode 的 `T=8`。
-
-| 对照项 | Prefill | Decode |
-| --- | --- | --- |
-| GEMM 权重复用 | 同一权重服务较多 token | 较少 token 分担权重读取 |
-| KV 变化 | 写入 prompt 的 [0,S) | 逐步追加位置 S、S+1；读取长度 S+1、S+2 |
-| 每次 AllReduce 输入 | 8 条等长 3072 token：384 MiB | T=8：128 KiB |
-| 需要追踪的开销 | 大 GEMM、Attention 中间数据与大消息通信 | 权重 / KV 读取、重复准备、提交间隙与 collective 延迟 |
-
-通信容量按 `T×8192×2` 字节计算。模型定义每层两次投影 AllReduce，80 层共 160 次逻辑归约，生成过程中还需广播 token。因此，缩短局部 FFN 的执行时间，只改善完整生成路径中的一部分。[源码 1、2](#sources)
-
-Decode 中 FFN 的形状可以稳定，Attention 的有效长度仍持续增长：前者有利于复用准备结果，后者要求更新执行状态。主机准备、设备计算和通信的重叠关系，决定局部节省能否反映到端到端延迟上。
-
-## 2. Paddle 静态图的优化与 NPU 执行
-
-### 2.1 Paddle 保留计算结构，执行实现决定设备工作
-
-Paddle 的静态 Program 保存算子、变量与属性，以子 Block 表达 while 等控制流；动态维度在运行时取值。FFN 中的 z、h 将前后算子的计算关系显式保留在图中。
-
-Pass 据此匹配计算模式，把权重、属性和输入输出映射到融合节点；执行器则根据数据依赖安排指令、stream 和张量存活期。融合节点调用的实现，决定它最终执行一个融合 kernel，还是多个计算步骤。
-
-因此，依赖内部计算模式的融合和布局处理应安排在子图替换之前。接入实现也不局限于 ATB：Paddle 节点可以直接调用 CANN 的融合接口或自定义 kernel，保留图结构并不要求设备逐个执行基础算子。[源码 3、4](#sources)
-
-### 2.2 保存执行指令，复用的是依赖与实现选择
-
-执行器首次构建指令时，按算子类型、设备、dtype 等选定实现，并建立输入输出绑定、前序依赖、事件及最后使用信息。重复运行复用这些结果，但每步仍需推进就绪指令、调用后端并提交设备任务。
-
-后端也有自己的准备阶段。Paddle 直接调用 CANN 时，`aclnn*GetWorkspaceSize` 返回 executor 和临时空间需求，随后执行接口接收 workspace 与 stream；调用 ATB 时，对应入口是 Setup／Execute。**保留 Paddle 图与复用后端执行配置，作用于不同的工作。**[源码 4](#sources)
-
-一次推理调用还包含 FFN 之外的生成控制：模型前向之后，需采样、更新状态并判断是否继续 Decode。这部分即使保存在静态图中，也仍可能由主机逐步推进。
-
-<!-- figure:control -->
-```text
-静态图中的循环
-  模型前向 → 采样 / 状态更新 → 是否全部停止
-     ↑                            │
-     └────────── 否 ───────────────┘
-
-普通 while 的实际推进
-  CPU 读取条件 → 执行循环体 → 再次读取条件
-  条件在 NPU 上：同步拷回 CPU 后再判断
-
-模型前向交给 ATB，不会自动消除循环外层的条件同步。
-```
-<!-- /figure -->
-
-PaddleNLP 将上述过程写在 `generate` 中并整体导出，所以一次 `predictor.run()` 可生成多个 token。普通 while 算子的 `GetCondData` 在条件位于设备时同步拷回 CPU；设备重放需要另外处理这项依赖。[源码 1、3](#sources)
-
-### 2.3 数据依赖决定并行与内存复用的范围
-
-FFN 的 C 生成 yᵣ，AllReduce 消费它，下一层消费完整 y。使用独立通信流时，必须用事件保留这条依赖；把通信换到另一条流不会让下一层提前使用结果。
-
-<!-- figure:streams -->
-```text
-同流：C → AllReduce → 消费 y
-
-计算流：C → record ready ────────── wait done → 消费 y
-通信流：        wait ready → AllReduce → record done
-
-Paddle 指令就绪：允许主机提交工作。
-stream 顺序 / event：约束设备实际执行顺序。
-yᵣ 存储：必须覆盖通信使用期。
-```
-<!-- /figure -->
-
-最后使用分析使 z、h 在消费后进入回收或复用流程；异步设备使用期仍需由 GC／allocator 保护。KV 跨 step 保留，其原地写入与别名必须参与读写依赖。把这些操作放进融合节点后，接口仍需表达相应副作用。
-
-通信还受跨 rank 顺序约束。当前 Paddle 可根据 `ring_id` 识别 collective 并补充依赖；ProcessGroupNCCL 与 ProcessGroupCustom 都有通信域缓存、跨流事件和存储保留路径。静态节点也可经 CommContext 直调通信库，所用 stream 和同步由该路径负责。[源码 5](#sources)
-
-## 3. ATB 的计算收益与组图增量
-
-### 3.1 固定计算实现后，组图改变调用与空间管理
-
-先固定 A、B、C 的 ATB 实现、布局和通信，仅改变谁组织 FFN。逐 Operation 路径由三个 Paddle 指令分别进入 Setup／Execute；GraphOperation 路径由一个指令进入公开接口，再由 ATB 连接并执行三个内部 Runner。
-
-<!-- figure:graph -->
-```text
-固定项：A / B / C 计算实现、输入布局、Paddle AllReduce
-
-                         Paddle 逐 Operation         ATB GraphOperation
-外层调用                 3 次 Setup + 3 次 Execute    1 次 Setup + 1 次 Execute
-执行准备                 各 Operation 准备 Runner    内部依次准备 3 个 Runner
-配置缓存                 各节点按条件复用            各节点按条件复用
-内部张量 z / h           Paddle 管理                 ATB 规划 workspace 偏移
-设备提交                 各 Operation 提交           GraphRunner 遍历 Runner 提交
-后续通信                 Paddle AllReduce            Paddle AllReduce
-
-两条路径的存活关系相同（独立输出的 SwiGLU）：
-                         A · Linear       B · SwiGLU       C · Linear
-z [T,5504]               生成 ━━━━━━━━━━━ 读取结束
-h [T,2752]                                生成 ━━━━━━━━━ 读取结束
-scratch                  使用             顺序复用        顺序复用
-yᵣ [T,8192]                                               写入外部输出
-
-T=8、FP16 时，B 执行期间：z 为 86 KiB，h 为 43 KiB，合计 129 KiB。
-```
-<!-- /figure -->
-
-GraphOperation 用 tensor ID 建立连接，沿节点推导内部描述和最后使用位置；单流 scratch 按节点最大需求复用，z、h 则按存活期安排偏移。B 读取 z 并生成 h 时，两者都必须保留；T=8、FP16 下，两条路径中 z、h 的同时存活容量均为 129 KiB。
-
-子图集中处理边界检查和空间规划；在设备 tiling-buffer 路径上，还可汇总节点的 tiling 数据。执行时，GraphRunner 仍遍历内部 Runner，完成地址绑定与 kernel 提交。[源码 9](#sources)
-
-Paddle 的最后使用分析也能支持存储复用。两条路径的实际分配量，还取决于 scratch、对齐和各自的空间复用策略。
-
-### 3.2 Setup 复用配置，Execute 更新本次绑定
-
-节点配置可以在前述两条路径中复用。以 A 的固定权重为例：shape、dtype、format 和 transpose 等参数决定实现选择、分块与临时空间；本次 x、z 的地址用于执行绑定。InferShape 推导输出描述，由调用方准备输出；Setup 准备执行配置并返回 workspace 需求，Execute 绑定地址并提交。
-
-<!-- figure:setup -->
-```text
-变化                  Setup 保留或更新什么                 Execute 每次做什么
-首次调用              创建 Runner，准备 tiling / 空间需求   绑定地址与 workspace，提交
-同规格，只换地址      检查命中后复用准备结果                使用新地址，继续提交
-T 或参数 / 布局改变   按新描述更新准备与空间需求             使用新配置和地址提交
-Attention 长度增长    读取长度状态，按实现更新内部参数       使用当前 KV、长度和位置
-
-Operation 保存参数与 Runner；VariantPack 传入描述和地址。
-Context 提供执行 stream 与 tiling 缓冲区；调用方提供输出与 workspace。
-```
-<!-- /figure -->
-
-当前包装层每步都会调用 Setup；OpsRunner 在参数未更新、输入描述相同等条件下命中缓存。Attention 的部分 Runner 还会读取 host 侧长度，更新 qSeqLen／kvSeqLen。因此，Decode 的 FFN 可以复用形状相关准备，而有效长度变化的 Attention 仍需更新状态。[源码 7](#sources)
-
-Execute 把当前地址与 workspace 偏移传给内部 Runner，按路径传输 tiling 或传入 launch 参数，再异步提交 kernel。Context 沿用 Paddle stream；输出与 workspace 由 Paddle 分配，后者按容量复用，扩容前会等待该 stream。调用返回后，存储仍要满足上一章的设备依赖与生命周期要求。[源码 8](#sources)
-
-### 3.3 Attention 的分块实现直接改变中间数据
-
-前两节固定了 kernel；这里单独分析计算实现。ATB 所查 FP16 FlashAttention 路径用 Cube 处理 QK／PV，用 Vector 更新 Softmax，逐块生成输出。它的收益可以通过一个 Attention Operation 接入。
-
-<!-- figure:attention -->
-```text
-分离实现：QKᵀ → 完整 score → Softmax → 完整 probability → PV
-分块实现：固定 Q 块，依次处理 Kⱼ、Vⱼ → 更新 Softmax 状态并累积输出
-
-batch=8、每 rank 8 个头、S=3072：
-一份 FP16 完整 score = 8×8×3072²×2 = 1.125 GiB / rank
-分块实现保存当前块与累积状态，复用块级 scratch。
-```
-<!-- /figure -->
-
-每行保留最大值 m、分母 l 和未归一化输出 o；sⱼ 是当前得分块，包含 scale 和 mask。更新规则为：
-
-```text
-初始：m=−∞，l=0，o=0
-m′ = max(m, max(sⱼ))       pⱼ = exp(sⱼ−m′)
-l′ = exp(m−m′)·l + sum(pⱼ)
-o′ = exp(m−m′)·o + pⱼVⱼ
-最终输出 = o/l
-```
-
-旧累积值随新最大值重新缩放，使各块使用统一的归一化基准，因而无需物化完整 S×S 张量。所查 NPU 实现仍通过块级全局 scratch 在 Cube／Vector 间传递数据。[源码 6](#sources)
-
-这里改变的是设备的数据组织，收益归属于融合 Attention。选择 ATB 单 Operation 已可使用这套实现；直接调用 CANN 对应融合接口也是同类候选，两者应按实际实现比较。整层组图的价值则仍按第 3.1 节单独分析。
-
-### 3.4 计算通信融合把等待细化到分块
-
-普通 Linear 后接 AllReduce，需要先产生投影结果，再归约。ATB 的 LinearParallel 在 HCCL／LCCL 分支中组织这两个步骤；LCOC 分支则提供专用 MatmulAllReduce，以结果块为单位推进计算和通信。
-
-<!-- figure:overlap -->
-```text
-普通调用：完成 MatMul ──────────→ AllReduce
-
-LCOC 分块流水：
-Cube：    MatMul 块 0 → MatMul 块 1 → MatMul 块 2
-                  ↘              ↘              ↘
-Vector：            归约块 0   →   归约块 1   →   归约块 2
-
-结果就绪：Cube 写入缓冲区，通过设备 flag 通知 Vector。
-再次复用：Cube 等待该位置的归约完成，避免覆盖尚在使用的数据。
-```
-<!-- /figure -->
-
-这条流水允许归约前一批结果时继续计算后续块，改变了原来的整段依赖。Paddle NPU 也已有直调 `aclnnMatmulAllReduce` 的接入；计算通信融合可以局部接入，具体 CANN 与 LCOC 实现分别比较。[源码 10](#sources)
-
-通信进入 ATB 后，资源与顺序仍要接上 Paddle：HCCL 路径可借用 Paddle 持有的 `HcclComm`，使用 Context 的 stream；LCCL 则使用独立的 `LcalComm`。ATB 直调 HCCL 绕过 ProcessGroup 的 Task／存储保留逻辑，适配层需承担跨流事件、缓冲区存活和 collective 顺序。采用子图时，这些责任与计算一起交接。
-
----
-
-后续章节将以这些机制为依据，对照 PyTorch 图编译与 CUDA Graph，再分析原方案的选型、其他接入路线及同场景重新设计。
+本卡将 gate/up 权重沿输出维度拼接，合并为一次 Linear；这一步合并调用，不改变张量并行的归约位置。[源码 2](#sources)
 
 <a id="sources"></a>
 
@@ -261,11 +309,11 @@ Vector：            归约块 0   →   归约块 1   →   归约块 2
 
 1. [启动配置](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/infer_llama_npu.sh#L8)、[generate 导出与生成循环](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/paddlenlp/experimental/transformers/generation_utils.py#L64)、[输入绑定](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/llm/predictor.py#L579)。脚本设置 src_length=3072、max_length=4096，未开启 benchmark；它们不代表实测输入长度。
 2. [本卡 gate/up 拼接](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/paddlenlp/experimental/transformers/llama/modeling.py#L373)、[两处 AllReduce](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/paddlenlp/experimental/transformers/fused_transformer_layers.py#L618)。
-3. 当前 `llama_fuse_attention_layer` 将含 Attention / FFN 的模式替换为融合节点，映射权重、KV、长度及 epsilon / transpose 等属性；该模式未包含 AllReduce。[当前 Llama Pass](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/passes/llama.py#L81)、[while 循环体执行](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/operators/controlflow/while_op.cc#L249)、[条件同步回读](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/operators/controlflow/while_op_helper.cc#L220)。导出另有[权重 transpose 后 reshape](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/llm/export_model.py#L61)，逻辑 shape 与物理数据排列须一起核对。
-4. [指令构建](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L698)、[CANN 准备与执行](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/kernels/funcs/npu_op_runner.h#L492)。
-5. [指令事件与 GC](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L1198)、[ProcessGroupCustom](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/distributed/collective/process_group_custom.cc#L666)、[通信顺序](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/dependency_builder.cc#L247)。启动脚本默认关闭 eager deletion 和 stream-safe allocator；部署时须结合配置核对存储行为。
+3. 当前 `llama_fuse_attention_layer` 将含 Attention / FFN 的模式替换为融合节点，映射权重、KV、长度及 epsilon / transpose 等属性；该模式未包含 AllReduce。[当前 Llama Pass](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/passes/llama.py#L81)、[while 循环体执行](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/operators/controlflow/while_op.cc#L249)、[条件同步回读](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/operators/controlflow/while_op_helper.cc#L220)。导出另有[权重 transpose 后 reshape](https://github.com/ShuZihan/PaddleNLP/blob/52c161ebf628cca59a714f80bb3ada0b358b56e4/llm/export_model.py#L61)，逻辑 shape 与物理数据排列须一起核对。 补充：[Tensor while 转换](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/python/paddle/jit/dy2static/convert_operators.py#L166)。[融合节点注册](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/llama_infer/atb_ops/fused_blha_layer_op.cc#L632)将 KV 列为输入，未通过输出或 inplace map 声明其写入；正文说明状态契约，具体接入问题在第五章分析。
+4. [指令构建](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L702)、[CANN 准备与执行](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/kernels/funcs/npu_op_runner.h#L492)。 [推理分支与末尾等待](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L154)、[变量绑定和实现选择](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/interpreter_util.cc#L647)、[复用拓扑指令顺序](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L1650)。末尾等待针对默认设备上下文；私有流须通过依赖接回。
+5. [指令事件与 GC](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L1198)、[ProcessGroupCustom](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/distributed/collective/process_group_custom.cc#L666)、[通信顺序](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/dependency_builder.cc#L247)。启动脚本默认关闭 eager deletion 和 stream-safe allocator；部署时须结合配置核对存储行为。 [最后使用分析](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L848)、[Event GC 持有分配对象](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/garbage_collector/event_garbage_collector.cc#L171)、[读写与 inplace 依赖](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/dependency_builder.cc#L419)、[静态 AllReduce 的两种入口](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/phi/kernels/custom/c_allreduce_kernel_impl.h#L63)、[stream 选择与 NCCL 特例](https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/stream_analyzer.cc#L189)。
 6. [Attention Runner](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/self_attention/self_attention_operation.cpp#L2086)、[分块 kernel 与全局 scratch](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/mixkernels/unpad_flash_attention/op_kernel/unpad_flash_attention_mix.cce#L239)、[在线 Softmax](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/mixkernels/unpad_flash_attention/op_kernel/fa_common.cce#L778)。
-7. [Setup 复用](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/ops_runner.cpp#L162)、[Attention 长度更新](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/self_attention/self_attention_encoder_fusion_ops_runner.cpp#L119)。
+7. [Setup 复用](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/ops_runner.cpp#L162)、[Attention 长度更新](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/self_attention/self_attention_encoder_fusion_ops_runner.cpp#L119)。 [缓存比较的输入描述](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/utils/tensor_util.cpp#L360)，不以设备数据地址作为此项相等比较的内容。
 8. [Operation 准备与执行](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L520)、[Paddle Context / workspace](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/llama_infer/atb_ops/atb_layers/runner.cc#L202)。当前包装层使用静态 workspace 缓冲区，并发调用还需处理跨 stream 隔离。
-9. [GraphRunner 准备与空间](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L304)、[内部逐节点执行](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L946)。图采用独立输出的 SwiGLU；workspace 容量还包括对齐与实际 kernel 需求。
+9. [GraphRunner 准备与空间](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L304)、[内部逐节点执行](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L946)。图采用独立输出的 SwiGLU；workspace 容量还包括对齐与实际 kernel 需求。 [GraphOperation 创建内部 Runner](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/graph_operation.cpp#L285)、[内部描述与偏移准备](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L699)、[独立设备重放模式](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1069)。当前 Paddle 包装层未调用 SetLaunchMode，沿用默认 KERNEL_LAUNCH_MODE。
 10. [借用 HCCL 域](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/hccl_runner.cpp#L46)、[LinearParallel 分支](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/linear_parallel/linear_parallel_operation.cpp#L617)、[LCOC 分块生产](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_ppmatmul.cce#L962)、[分块归约及缓冲区释放通知](https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_allreduce.cce#L210)、[Paddle 直调融合接口](https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/fused_mm_allreduce.cc#L22)。当前所查 Llama ATB 适配目录未见外部 HcclComm 注入；此处说明库能力与接入设计。CANN 融合接口与 LCOC 是不同实现，图中的设备流水对应后者。
