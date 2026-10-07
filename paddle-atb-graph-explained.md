@@ -75,18 +75,22 @@ Program：保存这些算子、变量描述及 Block。
 
 这份静态程序称为 **Program**，其中每段计算由 **Block** 组织。PaddleNLP 用 `to_static` 导出包含前向、采样和循环的模型代码：Tensor 条件的 while 保留为控制流节点，其循环体放入子 Block。输入规格中的动态维度留待运行时确定，因此 Decode 长度增加时，节点连接可以不变，只更新长度、KV 等状态。[源码 1、3](#sources)
 
-有了显式连接，框架就能先匹配一段计算，再换成等价实现。当前 Llama 规则检查 Norm、Attention 和 FFN 的连接，把权重与状态接入融合节点，复制 epsilon、transpose 等属性，并将下游接到新输出。这类图改写称为 **Pass**。
+有了显式连接，框架就能匹配一段计算，再换成等价实现。这类图改写称为 **Pass**。当前 `llama_fuse_attention_layer` 匹配从第一个 Norm 到 FFN 输出的连续区域，将 **Attention 与 FFN 一起替换**为 Transformer 层融合算子 `fused_blha_layer_op`，同时映射输入、属性和下游连接。
 
 <!-- figure:paddle_pass -->
 ```text
-匹配完整模式
-hidden → Norm → QKV → Attention → out → Norm → A → z → B → h → C
+同一个 Pass 的完整匹配区域：Attention + FFN
+RMSNorm → QKV 投影 → BLHA → 输出投影 → RMSNorm → gate/up 投影 → SwiGLU → down 投影
+BLHA 为 block_multihead_attention，包含 RoPE 与 KV 更新。
+
+llama_fuse_attention_layer 将上述连续区域一起替换。
 
 保留边界与计算参数
-hidden、原权重、KV、长度、RoPE ─┐
-epsilon、transpose 等原属性 ──┴→ fused_blha_layer_op → hidden_out → 原消费者
+hidden、原权重、KV、长度、block table、rope_emb（cos / sin 数据） ─┐
+epsilon、transpose 等原属性 ────────────────────────────────────┴→ fused_blha_layer_op → hidden_out → 原消费者
 
-变化：内部连接及 z / h 由新节点的实现管理。
+一个 Paddle 节点，内部 ATB 图执行 Attention 与 FFN。
+变化：被匹配的 Attention 和 FFN 节点一起替换；内部连接与临时张量由新节点实现管理。
 约束：外部使用的结果和状态更新必须保留。
 ```
 <!-- /figure -->
@@ -217,7 +221,7 @@ host 返回 ───────── 设备继续读写 x / W / z / workspace
 
 ### 3.2 GraphOperation 组织节点执行与内部空间
 
-单个 Operation 的执行过程确定后，可以将 FFN 的三个计算连起来：**A 为 gate/up 投影，B 为 SwiGLU，C 为 down 投影**。GraphOperation 保存这三个 Operation，以及 `A → z → B → h → C` 的 tensor ID 连接；首次 Setup 据此创建 GraphRunner 和各节点 Runner。[源码 9](#sources)
+下面取整层中的 FFN 作为局部示例，说明组图机制：**A 为 gate/up 投影，B 为 SwiGLU，C 为 down 投影**。示例将这三个 Operation 及 `A → z → B → h → C` 的 tensor ID 连接保存为 GraphOperation；首次 Setup 据此创建 GraphRunner 和各节点 Runner。第二章实际 Pass 的替换范围同时包含 Attention 与 FFN。[源码 9](#sources)
 
 <!-- figure:graph -->
 ```text
