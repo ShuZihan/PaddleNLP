@@ -2,38 +2,35 @@
 
 框架机制与 ATB 接入方案 · 第 1—3 章修订稿 · 2026-10-07
 
-**ATB 的计算能力可以通过单个 Operation 接入；采用 GraphOperation，则进一步把一段计算的准备、调度和内部空间交给 ATB。** 本文以同一段 MP8 FFN 为对照，分别追踪这两项选择改变的工作。
+## 1. 算子接入与子图接入
 
-## 1. Llama-65B 的推理链路与性能开销
+### 1.1 相同计算实现下的执行差异
 
-### 1.1 Decode 延迟由计算、通信和生成状态共同决定
+ATB 是昇腾的 Transformer 推理加速库。Paddle 可逐个调用其中的算子，也可将一段计算交给 ATB 组图执行。下面采用相同的 Linear、SwiGLU 实现，对照同一段 FFN。
 
-场景固定为 **MP8、FP16、batch=8、静态推理**。PaddleNLP 导出的是包含采样和 Decode 循环的 `generate`；一次 `predictor.run()` 可以完成多步生成。后一个 token 依赖前一步的输出，层内的投影结果还需跨卡归约，才能被后续计算消费。
-
-<!-- figure:execution -->
+<!-- figure:boundary -->
 ```text
-模型准备：权重按 rank 分片、调整布局 → to_static(generate) → 分 rank 导出
-加载模型：Pass 改写 → 建立执行指令 → 准备设备与通信资源
+Paddle 逐节点执行
+  [Linear] → [SwiGLU] → [Linear]
+      ↓          ↓          ↓
+   ATB 算子   ATB 算子   ATB 算子
+  中间张量：Paddle 管理
 
-一次 predictor.run()
-  Prefill → 采样 / token 广播 → 更新长度、位置与停止状态
-                 ↑                          ↓ 尚未全部停止
-                 └────── Decode 前向 ───────┘
-
-每次前向的 Transformer 层 × 80
-  Attention → 输出投影 → AllReduce → 残差 / RMSNorm
-            → FFN → AllReduce → 残差 → 下一层
-
-复用：权重、执行指令、通信域；容量合适的 KV 与 workspace 缓冲区
-更新：token、KV 内容、有效长度、位置、停止状态与本次执行绑定
+ATB 子图执行
+  Paddle [FFN 节点]
+              ↓
+  ATB [Linear → SwiGLU → Linear]
+  中间张量：ATB 规划
 ```
 <!-- /figure -->
 
-因此，只优化 FFN 内的 kernel，仍会留下投影后的通信、采样与循环推进。模型定义每层两次 AllReduce，80 层共 160 次逻辑归约；优化需要看这些依赖形成的完整执行路径。[源码 1、2](#sources)
+第二种方式将三次 Paddle 节点调度变为一次，并把中间张量交给 ATB 规划。**ATB 内部仍需执行这些计算，kernel 数量和中间数据读写不会仅因封装而减少。** 同时，Paddle 后续的融合 Pass 无法再匹配子图内部的计算。[源码 3、9](#sources)
+
+ATB 算子实现带来的加速可以通过第一种方式取得；第二种方式还需要解释组图额外省掉了哪些工作。后文分别追踪 Paddle 已有的优化、ATB 的执行准备与内存规划，以及真正改变设备计算的融合实现。
 
 ### 1.2 FFN 的分片让非线性留在本卡，把归约放到 down 之后
 
-按 `xW` 记权重：hidden=8192，intermediate=22016。MP8 将中间通道分成 8 组，每组 2752；rank r 负责 Iᵣ。下面同时标出权重分片与本卡 gate/up 拼接，后文沿用 A、B、C 三段计算。
+对照采用 Llama-65B 的 **MP8、FP16、batch=8 静态推理**。按 `xW` 记权重：hidden=8192，intermediate=22016，每个 rank 负责一组 2752 个中间通道 Iᵣ。这里将本卡 gate/up 合并为第一个 Linear，并沿用 A、B、C 标记三段计算；AllReduce 保留在 Paddle。
 
 <!-- figure:ffn -->
 ```text
@@ -68,31 +65,19 @@ AllReduce 同时完成求和与结果复制，使下一层继续接收完整的 
 | 每次 AllReduce 输入 | 8 条等长 3072 token：384 MiB | T=8：128 KiB |
 | 需要追踪的开销 | 大 GEMM、Attention 中间数据与大消息通信 | 权重 / KV 读取、重复准备、提交间隙与 collective 延迟 |
 
-通信容量按 `T×8192×2` 字节计算，实际网络流量由算法决定。Decode 中 FFN 的形状可以稳定，Attention 的有效长度仍持续增长；这为配置复用提供了机会，也决定哪些准备必须更新。主机提交与设备执行可以重叠，端到端延迟需沿依赖分析。
+通信容量按 `T×8192×2` 字节计算。模型定义每层两次投影 AllReduce，80 层共 160 次逻辑归约，生成过程中还需广播 token。因此，缩短局部 FFN 的执行时间，只改善完整生成路径中的一部分。[源码 1、2](#sources)
+
+Decode 中 FFN 的形状可以稳定，Attention 的有效长度仍持续增长：前者有利于复用准备结果，后者要求更新执行状态。主机准备、设备计算和通信的重叠关系，决定局部节省能否反映到端到端延迟上。
 
 ## 2. Paddle 静态图的优化与 NPU 执行
 
 ### 2.1 Paddle 保留计算结构，执行实现决定设备工作
 
-静态 Program 以算子、变量和属性描述计算，以子 Block 表达 while 等控制流。`to_static(generate)` 保留这套结构；InputSpec 中的动态维度在运行时取值。FFN 的 z、h 既连接计算，也使执行器能够确定它们的使用范围。
+Paddle 的静态 Program 保存算子、变量与属性，以子 Block 表达 while 等控制流；动态维度在运行时取值。FFN 中的 z、h 将前后算子的计算关系显式保留在图中。
 
-**图结构给 Paddle 提供了两类优化依据：计算模式与数据依赖。** Pass 可匹配模式，把权重、属性和输入输出映射到融合节点；执行器则根据依赖安排指令、stream 和存储。融合节点调用的实现，决定它最终执行一个融合 kernel，还是多个计算步骤。
+Pass 据此匹配计算模式，把权重、属性和输入输出映射到融合节点；执行器则根据数据依赖安排指令、stream 和张量存活期。融合节点调用的实现，决定它最终执行一个融合 kernel，还是多个计算步骤。
 
-<!-- figure:backend -->
-```text
-同一 FFN：A · Linear → z → B · SwiGLU → h → C · Linear → AllReduce
-
-Paddle 逐算子接入                 Paddle 子图接入
-保留 A / B / C 三个节点            将 A / B / C 替换为一个节点
-  ├─ 调用 CANN / 自定义 kernel       └─ 调用 ATB GraphOperation
-  └─ 调用对应 ATB Operation              内部连接 A / B / C
-
-比较计算实现：固定语义、精度与输入，追踪 kernel 和访存变化。
-比较组图：两侧选用相同 ATB 计算实现，AllReduce 均留在 Paddle。
-```
-<!-- /figure -->
-
-这三条路径都能接入 NPU。选择较大的子图还会改变 Paddle 可见的结构：内部 MatMul、激活及变量被隐藏后，后续 Pass 只能处理边界。因此，需要这些模式的融合、权重和布局处理应安排在委托前。[源码 3](#sources)
+因此，依赖内部计算模式的融合和布局处理应安排在子图替换之前。接入实现也不局限于 ATB：Paddle 节点可以直接调用 CANN 的融合接口或自定义 kernel，保留图结构并不要求设备逐个执行基础算子。[源码 3、4](#sources)
 
 ### 2.2 保存执行指令，复用的是依赖与实现选择
 
@@ -100,7 +85,24 @@ Paddle 逐算子接入                 Paddle 子图接入
 
 后端也有自己的准备阶段。Paddle 直接调用 CANN 时，`aclnn*GetWorkspaceSize` 返回 executor 和临时空间需求，随后执行接口接收 workspace 与 stream；调用 ATB 时，对应入口是 Setup／Execute。**保留 Paddle 图与复用后端执行配置，作用于不同的工作。**[源码 4](#sources)
 
-生成循环同样保留主机工作：普通 while 算子读取条件后运行子 Block；条件位于设备上时，`GetCondData` 会同步拷回 CPU。因此，静态图中的整个 `generate` 仍有逐步调度和条件同步，后续设备重放设计需要单独处理这一部分。[源码 3](#sources)
+一次推理调用还包含 FFN 之外的生成控制：模型前向之后，需采样、更新状态并判断是否继续 Decode。这部分即使保存在静态图中，也仍可能由主机逐步推进。
+
+<!-- figure:control -->
+```text
+静态图中的循环
+  模型前向 → 采样 / 状态更新 → 是否全部停止
+     ↑                            │
+     └────────── 否 ───────────────┘
+
+普通 while 的实际推进
+  CPU 读取条件 → 执行循环体 → 再次读取条件
+  条件在 NPU 上：同步拷回 CPU 后再判断
+
+模型前向交给 ATB，不会自动消除循环外层的条件同步。
+```
+<!-- /figure -->
+
+PaddleNLP 将上述过程写在 `generate` 中并整体导出，所以一次 `predictor.run()` 可生成多个 token。普通 while 算子的 `GetCondData` 在条件位于设备时同步拷回 CPU；设备重放需要另外处理这项依赖。[源码 1、3](#sources)
 
 ### 2.3 数据依赖决定并行与内存复用的范围
 
@@ -152,11 +154,11 @@ T=8、FP16 时，B 执行期间：z 为 86 KiB，h 为 43 KiB，合计 129 KiB�
 ```
 <!-- /figure -->
 
-GraphOperation 用 tensor ID 建立连接，沿节点推导内部描述和最后使用位置；单流 scratch 按节点最大需求复用，z、h 则按存活期安排偏移。B 读取 z 并生成 h 时，两者都必须保留，所以图中 129 KiB 的容量需求在两条路径上相同。
+GraphOperation 用 tensor ID 建立连接，沿节点推导内部描述和最后使用位置；单流 scratch 按节点最大需求复用，z、h 则按存活期安排偏移。B 读取 z 并生成 h 时，两者都必须保留；T=8、FP16 下，两条路径中 z、h 的同时存活容量均为 129 KiB。
 
-子图集中处理边界检查和空间规划；在设备 tiling-buffer 路径上，还可汇总节点的 tiling 数据。执行时，GraphRunner 仍遍历内部 Runner，完成地址绑定与 kernel 提交。**这次组图压缩了外层调用，将内部管理转入 ATB；z、h 的读写和原有设备计算继续存在。**[源码 9](#sources)
+子图集中处理边界检查和空间规划；在设备 tiling-buffer 路径上，还可汇总节点的 tiling 数据。执行时，GraphRunner 仍遍历内部 Runner，完成地址绑定与 kernel 提交。[源码 9](#sources)
 
-Paddle 本身已有依赖分析与存储复用，因此应比较实际减少的准备、提交间隙和空间占用。与此同时，内部节点移出 Paddle 的优化与调试范围——这是扩大委托粒度需要承担的直接代价。
+Paddle 的最后使用分析也能支持存储复用。两条路径的实际分配量，还取决于 scratch、对齐和各自的空间复用策略。
 
 ### 3.2 Setup 复用配置，Execute 更新本次绑定
 

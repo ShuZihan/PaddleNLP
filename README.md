@@ -4,8 +4,8 @@
 
 网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/b22051caa9ca001a64c160f620159b011cfa9749/index.html
 
-- 第 1 章：由 MP8 FFN 分片、归约位置和生成循环定位推理开销。
-- 第 2 章：用同一 FFN 解释 Paddle 的图优化、执行实现、依赖与存储管理。
+- 第 1 章：先对照相同 FFN 的算子接入与子图接入，再分析 MP8 分片、归约和 Prefill / Decode 开销。
+- 第 2 章：解释 Paddle 的图优化、执行指令、计算通信依赖，以及生成循环保留的主机同步。
 - 第 3 章：固定计算实现比较逐 Operation 与 GraphOperation，再分析 Setup / Execute、Attention 分块和计算通信融合。
 
 页面包含 8 幅图解，支持手机、rank 分片与 Setup 状态切换。右上角可保存自包含 HTML，离线阅读和交互无需安装依赖。也提供 [Markdown 文字版](paddle-atb-graph-explained.md)。

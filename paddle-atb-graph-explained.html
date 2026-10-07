@@ -74,36 +74,71 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
  .call-route{padding:9px 6px}.call-route h4{font-size:11px;min-height:37px}.call-count>b{font-size:11px}.call-count>span{font-size:10px}.public-ops>div{flex-direction:column;justify-content:center;gap:1px}.public-ops,.internal-ops{height:150px}.public-ops span{font-size:9px}.space-owner{font-size:10px}.life-head{font-size:9px}.life-label small{font-size:9px}.lifetime{grid-template-columns:60px repeat(3,minmax(0,1fr))}.ffn-ops>div{grid-template-columns:76px minmax(0,1fr);font-size:11px}.ffn-ops>div>span{padding:8px}.backend-source b,.backend-target b{font-size:11px}.backend-source span,.backend-target span{font-size:10px}.setup-phases{gap:12px}.setup-phases h4{font-size:11px}.binding-contract span{font-size:10px}
 }
 
+/* The opening introduces the integration choice before API-specific mechanisms. */
+.hero>p:last-child{border:0;margin:0 0 18px;padding:0;font-size:13px;color:var(--muted)}
+.entry-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.entry-route{border:1px solid #a9c0dd;border-radius:8px;padding:17px 16px;min-width:0;display:flex;flex-direction:column}
+.entry-route.delegated{border-color:#9dc7b7}
+.entry-route h4{font-size:16px;margin:0 0 16px;color:var(--blue)}
+.entry-route.delegated h4{color:var(--teal)}
+.entry-label{font-size:12px;color:var(--muted);margin:0 0 8px}
+.entry-ops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;min-width:0;align-items:stretch}
+.entry-ops>b,.entry-ops>span{display:flex;justify-content:center;align-items:center;text-align:center;min-width:0;font-size:13px;line-height:1.6;padding:11px 2px;border-radius:5px;font-weight:600;background:#edf3fb;border:1px solid #b3c9e1;position:relative}
+.entry-ops>b+b:before{content:'→';position:absolute;left:-10px;top:50%;transform:translateY(-50%);font-size:10px;color:#6786a5;font-weight:400}
+.entry-calls{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;color:#557da2;font-size:21px;line-height:1.5;padding:8px 0}
+.atb-ops>span{font-size:12px;font-weight:500;background:#f0f7f4;border-color:#b5d1c4;padding:10px 2px;color:#326b5e}
+.entry-ffn{background:var(--blue-bg);border:1px solid #a8bfdc;text-align:center;font-size:13px;font-weight:600;border-radius:5px;padding:11px 7px;line-height:1.6}
+.entry-call{text-align:center;font-size:21px;line-height:1.5;padding:6px 0;color:#648d7c}.entry-call>span{font-size:11px;vertical-align:middle}
+.entry-atb-graph{padding:9px;background:#edf7f2;border:1px solid #a6c9b9;border-radius:5px}
+.entry-atb-graph>span{display:block;font-size:11px;color:#537b6a;margin:0 0 7px}
+.entry-atb-graph .entry-ops>b{background:#e0f0e8;border-color:#a6c9b9;padding:7px 2px;font-size:12px;color:#236d58}
+.entry-owner{margin-top:auto;padding-top:16px;font-size:12px;display:flex;justify-content:space-between;gap:10px;line-height:1.7}
+.entry-owner>span{color:var(--muted)}.entry-owner>b{font-weight:600;color:#365d7e}.delegated .entry-owner>b{color:var(--teal)}
+.generation-control{max-width:550px;margin:auto}.control-device,.control-host{border:1px solid #adc4de;background:var(--blue-bg);border-radius:6px;padding:12px 16px;text-align:center;line-height:1.7}
+.control-device>span,.control-host>span{display:block;font-size:11px;color:#5b7894;margin-bottom:4px}
+.control-device>b,.control-host>b{font-size:14px;font-weight:600;display:block}
+.control-device>small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.control-host{background:#f4f6f9;border-color:#cad7e2}
+.sync-link{padding:10px 0;text-align:center;line-height:1.7}.sync-link>b{display:block;font-size:13px;color:#8a622b;font-weight:600}.sync-link>span{display:block;font-size:11px;color:var(--muted)}
+.control-branches{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;text-align:center}
+.control-branches>div{border-left:2px solid #a6c9b9;padding:5px 8px;background:#f1f7f4;line-height:1.7}
+.control-branches b{font-size:12px;display:block;color:var(--teal);font-weight:600}.control-branches span{font-size:12px;display:block;color:var(--muted)}
+@media(max-width:700px){
+ .hero>p:last-child{font-size:12px;margin-bottom:12px;padding:0}
+ .entry-comparison{grid-template-columns:1fr;gap:14px}.entry-route{padding:14px 13px}.entry-route h4{font-size:14px;margin-bottom:11px}.entry-label{font-size:11px}.entry-ops>b,.entry-ops>span{font-size:12px;padding:8px 2px}.entry-calls{padding:4px 0;font-size:19px}.entry-call{padding:4px 0;font-size:19px}.entry-owner{padding-top:12px;font-size:11px}.entry-ffn{padding:8px 6px;font-size:12px}.entry-atb-graph{padding:8px}.entry-atb-graph .entry-ops>b{font-size:11px}.entry-atb-graph>span{font-size:10px;margin-bottom:5px}
+ .control-device,.control-host{padding:11px 10px}.control-device>b,.control-host>b{font-size:12px}.control-device>small{font-size:11px}.sync-link{padding:8px 0}.control-branches span{font-size:11px}
+}
+
 </style></head>
 <body><div class="topbar"><span>技术审阅 · 第 1—3 章</span><a href="paddle-atb-graph-explained.html" download="paddle-atb-guide-chapters-1-3.html" data-download>保存 HTML ↓</a></div><main><header class="hero"><p class="eyebrow">AI INFRA · 机制与接入设计</p><h1>Paddle 在 NPU 上运行 Llama-65B</h1>
 <p>框架机制与 ATB 接入方案 · 第 1—3 章修订稿 · 2026-10-07</p>
-<p><strong>ATB 的计算能力可以通过单个 Operation 接入；采用 GraphOperation，则进一步把一段计算的准备、调度和内部空间交给 ATB。</strong> 本文以同一段 MP8 FFN 为对照，分别追踪这两项选择改变的工作。</p>
-</header><nav class="chapter-nav" aria-label="章节"><a href="#chapter-1">01 推理链路</a><a href="#chapter-2">02 Paddle</a><a href="#chapter-3">03 ATB</a></nav>
-<section id="chapter-1" class="chapter"><h2><span>01</span>Llama-65B 的推理链路与性能开销</h2>
-<h3 id="section-1-1">1.1 Decode 延迟由计算、通信和生成状态共同决定</h3>
-<p>场景固定为 <strong>MP8、FP16、batch=8、静态推理</strong>。PaddleNLP 导出的是包含采样和 Decode 循环的 <code>generate</code>；一次 <code>predictor.run()</code> 可以完成多步生成。后一个 token 依赖前一步的输出，层内的投影结果还需跨卡归约，才能被后续计算消费。</p>
-<figure id="fig-execution"><figcaption>生成循环中的计算、归约与状态更新</figcaption>
-<div class="phases">
- <div><span class="tag">导出</span><b>权重分片与布局处理</b><span>to_static(generate)<br>保存各 rank 模型</span></div>
- <div><span class="tag">加载／首次运行</span><b>Pass → 执行指令</b><span>建立依赖<br>准备设备与通信资源</span></div>
-</div>
-<div class="scope"><div class="scope-title">一次 predictor.run()</div>
- <div class="run-grid">
-  <div class="node blue"><b>Prefill</b><span>写入 prompt KV</span></div><div class="link">→</div>
-  <div class="node"><b>采样 → token 广播</b><span>更新长度、位置与停止状态</span></div>
+</header><nav class="chapter-nav" aria-label="章节"><a href="#chapter-1">01 接入取舍</a><a href="#chapter-2">02 Paddle</a><a href="#chapter-3">03 ATB</a></nav>
+<section id="chapter-1" class="chapter"><h2><span>01</span>算子接入与子图接入</h2>
+<h3 id="section-1-1">1.1 相同计算实现下的执行差异</h3>
+<p>ATB 是昇腾的 Transformer 推理加速库。Paddle 可逐个调用其中的算子，也可将一段计算交给 ATB 组图执行。下面采用相同的 Linear、SwiGLU 实现，对照同一段 FFN。</p>
+<figure id="fig-boundary"><figcaption>调用与中间张量的管理位置</figcaption>
+<div class="entry-comparison">
+ <div class="entry-route">
+  <h4>Paddle 逐节点执行</h4>
+  <div class="entry-label">Paddle 图 · 3 个节点</div>
+  <div class="entry-ops paddle-ops"><b>Linear</b><b>SwiGLU</b><b>Linear</b></div>
+  <div class="entry-calls" aria-label="分别调用三个 ATB 算子"><span>↓</span><span>↓</span><span>↓</span></div>
+  <div class="entry-ops atb-ops"><span>ATB 算子</span><span>ATB 算子</span><span>ATB 算子</span></div>
+  <div class="entry-owner"><span>中间张量</span><b>Paddle 管理</b></div>
  </div>
- <div class="loop"><b>尚未全部停止 → Decode → 返回采样</b><span>全部停止 → 返回结果</span></div>
-</div>
-<div class="layer-path"><h4>每次前向：Transformer 层 × 80</h4>
- <div class="layer-row"><span>RMSNorm → Attention<br>→ 输出投影</span><i>→</i><b>AllReduce</b></div>
- <div class="layer-join">↓ 残差更新</div>
- <div class="layer-row"><span>RMSNorm<br>→ FFN A → B → C</span><i>→</i><b>AllReduce</b></div>
- <div class="layer-join">↓ 残差更新 → 下一层</div>
-</div>
-<div class="state-lines"><div><b>复用</b><span>权重、指令、通信域；容量合适的 KV / workspace</span></div><div><b>更新</b><span>token、KV 内容、长度、位置、停止状态、执行绑定</span></div></div></figure>
-<p>因此，只优化 FFN 内的 kernel，仍会留下投影后的通信、采样与循环推进。模型定义每层两次 AllReduce，80 层共 160 次逻辑归约；优化需要看这些依赖形成的完整执行路径。<a href="#sources">源码 1、2</a></p>
+ <div class="entry-route delegated">
+  <h4>ATB 子图执行</h4>
+  <div class="entry-label">Paddle 图 · 1 个节点</div>
+  <div class="entry-ffn">FFN 节点</div>
+  <div class="entry-call">↓ <span>调用 ATB 子图</span></div>
+  <div class="entry-atb-graph"><span>ATB 内部</span><div class="entry-ops"><b>Linear</b><b>SwiGLU</b><b>Linear</b></div></div>
+  <div class="entry-owner"><span>中间张量</span><b>ATB 规划</b></div>
+ </div>
+</div></figure>
+<p>第二种方式将三次 Paddle 节点调度变为一次，并把中间张量交给 ATB 规划。<strong>ATB 内部仍需执行这些计算，kernel 数量和中间数据读写不会仅因封装而减少。</strong> 同时，Paddle 后续的融合 Pass 无法再匹配子图内部的计算。<a href="#sources">源码 3、9</a></p>
+<p>ATB 算子实现带来的加速可以通过第一种方式取得；第二种方式还需要解释组图额外省掉了哪些工作。后文分别追踪 Paddle 已有的优化、ATB 的执行准备与内存规划，以及真正改变设备计算的融合实现。</p>
 <h3 id="section-1-2">1.2 FFN 的分片让非线性留在本卡，把归约放到 down 之后</h3>
-<p>按 <code>xW</code> 记权重：hidden=8192，intermediate=22016。MP8 将中间通道分成 8 组，每组 2752；rank r 负责 Iᵣ。下面同时标出权重分片与本卡 gate/up 拼接，后文沿用 A、B、C 三段计算。</p>
+<p>对照采用 Llama-65B 的 <strong>MP8、FP16、batch=8 静态推理</strong>。按 <code>xW</code> 记权重：hidden=8192，intermediate=22016，每个 rank 负责一组 2752 个中间通道 Iᵣ。这里将本卡 gate/up 合并为第一个 Linear，并沿用 A、B、C 标记三段计算；AllReduce 保留在 Paddle。</p>
 <figure id="fig-ffn"><figcaption>gate/up 列切、down 行切：本地计算后归约</figcaption>
 <div class="control js-only"><label for="rank-select">查看分片</label><select id="rank-select"><option value="0">rank 0</option><option value="1">rank 1</option><option value="2">rank 2</option><option value="3">rank 3</option><option value="4">rank 4</option><option value="5">rank 5</option><option value="6">rank 6</option><option value="7">rank 7</option></select></div>
 <div class="range" aria-live="polite">Iᵣ = <strong id="channel-range">[0, 2752)</strong> · 每 rank 2752 个通道</div>
@@ -125,25 +160,27 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
 <h3 id="section-1-3">1.3 Prefill 与 Decode 需要优化不同的重复工作</h3>
 <p><code>T</code> 是一次前向参与计算的 token 数。去 padding 后，Prefill 的 <code>T=ΣSᵢ</code>；8 条序列均有效时，Decode 的 <code>T=8</code>。</p>
 <table><thead><tr><th>对照项</th><th>Prefill</th><th>Decode</th></tr></thead><tbody><tr><td data-label="对照项"><span class="cell-value">GEMM 权重复用</span></td><td data-label="Prefill"><span class="cell-value">同一权重服务较多 token</span></td><td data-label="Decode"><span class="cell-value">较少 token 分担权重读取</span></td></tr><tr><td data-label="对照项"><span class="cell-value">KV 变化</span></td><td data-label="Prefill"><span class="cell-value">写入 prompt 的 [0,S)</span></td><td data-label="Decode"><span class="cell-value">逐步追加位置 S、S+1；读取长度 S+1、S+2</span></td></tr><tr><td data-label="对照项"><span class="cell-value">每次 AllReduce 输入</span></td><td data-label="Prefill"><span class="cell-value">8 条等长 3072 token：384 MiB</span></td><td data-label="Decode"><span class="cell-value">T=8：128 KiB</span></td></tr><tr><td data-label="对照项"><span class="cell-value">需要追踪的开销</span></td><td data-label="Prefill"><span class="cell-value">大 GEMM、Attention 中间数据与大消息通信</span></td><td data-label="Decode"><span class="cell-value">权重 / KV 读取、重复准备、提交间隙与 collective 延迟</span></td></tr></tbody></table>
-<p>通信容量按 <code>T×8192×2</code> 字节计算，实际网络流量由算法决定。Decode 中 FFN 的形状可以稳定，Attention 的有效长度仍持续增长；这为配置复用提供了机会，也决定哪些准备必须更新。主机提交与设备执行可以重叠，端到端延迟需沿依赖分析。</p>
+<p>通信容量按 <code>T×8192×2</code> 字节计算。模型定义每层两次投影 AllReduce，80 层共 160 次逻辑归约，生成过程中还需广播 token。因此，缩短局部 FFN 的执行时间，只改善完整生成路径中的一部分。<a href="#sources">源码 1、2</a></p>
+<p>Decode 中 FFN 的形状可以稳定，Attention 的有效长度仍持续增长：前者有利于复用准备结果，后者要求更新执行状态。主机准备、设备计算和通信的重叠关系，决定局部节省能否反映到端到端延迟上。</p>
 </section>
 <section id="chapter-2" class="chapter"><h2><span>02</span>Paddle 静态图的优化与 NPU 执行</h2>
 <h3 id="section-2-1">2.1 Paddle 保留计算结构，执行实现决定设备工作</h3>
-<p>静态 Program 以算子、变量和属性描述计算，以子 Block 表达 while 等控制流。<code>to_static(generate)</code> 保留这套结构；InputSpec 中的动态维度在运行时取值。FFN 的 z、h 既连接计算，也使执行器能够确定它们的使用范围。</p>
-<p><strong>图结构给 Paddle 提供了两类优化依据：计算模式与数据依赖。</strong> Pass 可匹配模式，把权重、属性和输入输出映射到融合节点；执行器则根据依赖安排指令、stream 和存储。融合节点调用的实现，决定它最终执行一个融合 kernel，还是多个计算步骤。</p>
-<figure id="fig-backend"><figcaption>计算实现与子图委托可以分别选择</figcaption>
-<div class="backend-grid">
- <div class="diagram-head">Paddle 可见结构</div><div></div><div class="diagram-head">NPU 执行入口</div>
- <div class="backend-source individual"><b>A → B → C</b><span>保留三个节点<br>z / h 对 Paddle 可见</span></div><div class="backend-arrow">→</div><div class="backend-target"><b>CANN / 自定义 kernel</b><span>可直接选择融合实现</span></div>
- <div class="backend-arrow">→</div><div class="backend-target"><b>ATB 单 Operation</b><span>分别调用 A / B / C</span></div>
- <div class="backend-source"><b>一个融合节点</b><span>暴露子图边界</span></div><div class="backend-arrow">→</div><div class="backend-target teal"><b>ATB GraphOperation</b><span>内部组织 A → B → C</span></div>
-</div>
-<div class="figure-note">第 3 章固定两条 ATB 路径的计算实现，分析组图增加或减少的工作；AllReduce 均保留在 Paddle。</div></figure>
-<p>这三条路径都能接入 NPU。选择较大的子图还会改变 Paddle 可见的结构：内部 MatMul、激活及变量被隐藏后，后续 Pass 只能处理边界。因此，需要这些模式的融合、权重和布局处理应安排在委托前。<a href="#sources">源码 3</a></p>
+<p>Paddle 的静态 Program 保存算子、变量与属性，以子 Block 表达 while 等控制流；动态维度在运行时取值。FFN 中的 z、h 将前后算子的计算关系显式保留在图中。</p>
+<p>Pass 据此匹配计算模式，把权重、属性和输入输出映射到融合节点；执行器则根据数据依赖安排指令、stream 和张量存活期。融合节点调用的实现，决定它最终执行一个融合 kernel，还是多个计算步骤。</p>
+<p>因此，依赖内部计算模式的融合和布局处理应安排在子图替换之前。接入实现也不局限于 ATB：Paddle 节点可以直接调用 CANN 的融合接口或自定义 kernel，保留图结构并不要求设备逐个执行基础算子。<a href="#sources">源码 3、4</a></p>
 <h3 id="section-2-2">2.2 保存执行指令，复用的是依赖与实现选择</h3>
 <p>执行器首次构建指令时，按算子类型、设备、dtype 等选定实现，并建立输入输出绑定、前序依赖、事件及最后使用信息。重复运行复用这些结果，但每步仍需推进就绪指令、调用后端并提交设备任务。</p>
 <p>后端也有自己的准备阶段。Paddle 直接调用 CANN 时，<code>aclnn*GetWorkspaceSize</code> 返回 executor 和临时空间需求，随后执行接口接收 workspace 与 stream；调用 ATB 时，对应入口是 Setup／Execute。<strong>保留 Paddle 图与复用后端执行配置，作用于不同的工作。</strong><a href="#sources">源码 4</a></p>
-<p>生成循环同样保留主机工作：普通 while 算子读取条件后运行子 Block；条件位于设备上时，<code>GetCondData</code> 会同步拷回 CPU。因此，静态图中的整个 <code>generate</code> 仍有逐步调度和条件同步，后续设备重放设计需要单独处理这一部分。<a href="#sources">源码 3</a></p>
+<p>一次推理调用还包含 FFN 之外的生成控制：模型前向之后，需采样、更新状态并判断是否继续 Decode。这部分即使保存在静态图中，也仍可能由主机逐步推进。</p>
+<figure id="fig-control"><figcaption>设备条件回读使生成循环依赖 CPU 判断</figcaption>
+<div class="generation-control">
+ <div class="control-device"><span>循环体执行</span><b>模型前向 → 采样与状态更新</b><small>产生本轮停止条件</small></div>
+ <div class="sync-link"><b>↓ 同步回读</b><span>条件存储在 NPU 时</span></div>
+ <div class="control-host"><span>CPU</span><b>读取条件，判断循环是否继续</b></div>
+ <div class="control-branches"><div><b>继续</b><span>提交下一轮计算 ↰</span></div><div><b>结束</b><span>返回生成结果</span></div></div>
+</div>
+<div class="figure-note">模型前向交给 ATB 后，外层 while 的条件判断仍需执行。</div></figure>
+<p>PaddleNLP 将上述过程写在 <code>generate</code> 中并整体导出，所以一次 <code>predictor.run()</code> 可生成多个 token。普通 while 算子的 <code>GetCondData</code> 在条件位于设备时同步拷回 CPU；设备重放需要另外处理这项依赖。<a href="#sources">源码 1、3</a></p>
 <h3 id="section-2-3">2.3 数据依赖决定并行与内存复用的范围</h3>
 <p>FFN 的 C 生成 yᵣ，AllReduce 消费它，下一层消费完整 y。使用独立通信流时，必须用事件保留这条依赖；把通信换到另一条流不会让下一层提前使用结果。</p>
 <figure id="fig-streams"><figcaption>主机提交与设备完成受不同的依赖约束</figcaption>
@@ -188,9 +225,9 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
  <div class="life-label">yᵣ<small>[T,8192]</small></div><div></div><div></div><div class="life-bar output">外部输出</div>
 </div>
 <div class="memory-result"><b>B 执行时 z、h 同时存活</b><span>T=8，FP16：86 KiB + 43 KiB = <strong>129 KiB</strong></span></div></figure>
-<p>GraphOperation 用 tensor ID 建立连接，沿节点推导内部描述和最后使用位置；单流 scratch 按节点最大需求复用，z、h 则按存活期安排偏移。B 读取 z 并生成 h 时，两者都必须保留，所以图中 129 KiB 的容量需求在两条路径上相同。</p>
-<p>子图集中处理边界检查和空间规划；在设备 tiling-buffer 路径上，还可汇总节点的 tiling 数据。执行时，GraphRunner 仍遍历内部 Runner，完成地址绑定与 kernel 提交。<strong>这次组图压缩了外层调用，将内部管理转入 ATB；z、h 的读写和原有设备计算继续存在。</strong><a href="#sources">源码 9</a></p>
-<p>Paddle 本身已有依赖分析与存储复用，因此应比较实际减少的准备、提交间隙和空间占用。与此同时，内部节点移出 Paddle 的优化与调试范围——这是扩大委托粒度需要承担的直接代价。</p>
+<p>GraphOperation 用 tensor ID 建立连接，沿节点推导内部描述和最后使用位置；单流 scratch 按节点最大需求复用，z、h 则按存活期安排偏移。B 读取 z 并生成 h 时，两者都必须保留；T=8、FP16 下，两条路径中 z、h 的同时存活容量均为 129 KiB。</p>
+<p>子图集中处理边界检查和空间规划；在设备 tiling-buffer 路径上，还可汇总节点的 tiling 数据。执行时，GraphRunner 仍遍历内部 Runner，完成地址绑定与 kernel 提交。<a href="#sources">源码 9</a></p>
+<p>Paddle 的最后使用分析也能支持存储复用。两条路径的实际分配量，还取决于 scratch、对齐和各自的空间复用策略。</p>
 <h3 id="section-3-2">3.2 Setup 复用配置，Execute 更新本次绑定</h3>
 <p>节点配置可以在前述两条路径中复用。以 A 的固定权重为例：shape、dtype、format 和 transpose 等参数决定实现选择、分块与临时空间；本次 x、z 的地址用于执行绑定。InferShape 推导输出描述，由调用方准备输出；Setup 准备执行配置并返回 workspace 需求，Execute 绑定地址并提交。</p>
 <figure id="fig-setup"><figcaption>调用变化决定准备结果是否继续有效</figcaption><div class="control js-only"><label for="setup-select">查看调用变化</label><select id="setup-select"><option value="first">首次 Linear</option><option value="address">只换地址</option><option value="shape">T 或参数改变</option><option value="length">Attention 长度增长</option></select></div><div class="setup-case active" data-case="first"><div class="case-state"><b>首次 Linear</b><span>x [8,8192]，W [8192,5504]；尚无准备结果</span></div><div class="two setup-phases"><div><h4>Setup · 准备或复用</h4><div class="setup-action"><b>选择 Runner</b><span>由参数与平台确定实现</span></div><div class="setup-action"><b>准备 tiling</b><span>确定分块、核分工和执行参数</span></div><div class="setup-action"><b>计算空间需求</b><span>返回 workspace 字节数</span></div></div><div><h4>Execute · 绑定与提交</h4><div class="setup-action"><b>绑定本次地址</b><span>x、z 与 workspace</span></div><div class="setup-action"><b>准备提交参数</b><span>按路径传输或携带 tiling</span></div><div class="setup-action"><b>向 stream 提交</b><span>主机返回后设备继续执行</span></div></div></div></div><div class="setup-case " data-case="address"><div class="case-state"><b>只换地址</b><span>shape、dtype、format 和参数不变；更换 x / z 地址</span></div><div class="two setup-phases"><div><h4>Setup · 准备或复用</h4><div class="setup-action"><b>保留 Runner</b><span>继续使用同一实现</span></div><div class="setup-action"><b>检查缓存命中</b><span>复用 tiling 等准备结果</span></div><div class="setup-action"><b>沿用空间需求</b><span>容量合适时继续复用</span></div></div><div><h4>Execute · 绑定与提交</h4><div class="setup-action"><b>换绑新地址</b><span>使用本次 x / z</span></div><div class="setup-action"><b>使用已有配置</b><span>tiling 准备结果继续有效</span></div><div class="setup-action"><b>再次提交设备计算</b><span>缓存的是配置，计算仍执行</span></div></div></div></div><div class="setup-case " data-case="shape"><div class="case-state"><b>T 或参数改变</b><span>x [8,8192] → [16,8192]；参数或布局变化同样需检查</span></div><div class="two setup-phases"><div><h4>Setup · 准备或复用</h4><div class="setup-action"><b>检查执行实现</b><span>按新 TensorDesc / 参数准备</span></div><div class="setup-action"><b>更新 tiling</b><span>重算分块与执行参数</span></div><div class="setup-action"><b>重算空间需求</b><span>调用方按容量决定是否扩容</span></div></div><div><h4>Execute · 绑定与提交</h4><div class="setup-action"><b>绑定当前存储</b><span>包括扩容后的 workspace</span></div><div class="setup-action"><b>使用更新配置</b><span>传递当前 tiling / 参数</span></div><div class="setup-action"><b>提交新规格计算</b><span>依赖和存储保护继续生效</span></div></div></div></div><div class="setup-case " data-case="length"><div class="case-state"><b>Attention 长度增长</b><span>KV 地址和张量形状可不变；有效长度 S → S+1</span></div><div class="two setup-phases"><div><h4>Setup · 准备或复用</h4><div class="setup-action"><b>读取长度状态</b><span>部分 Runner 读取 host metadata</span></div><div class="setup-action"><b>更新内部参数</b><span>qSeqLen / kvSeqLen</span></div><div class="setup-action"><b>检查准备是否有效</b><span>按实现更新 tiling / 空间需求</span></div></div><div><h4>Execute · 绑定与提交</h4><div class="setup-action"><b>绑定当前 KV / 输出</b><span>地址可以沿用</span></div><div class="setup-action"><b>使用当前长度配置</b><span>处理本次有效读写范围</span></div><div class="setup-action"><b>提交本步 Attention</b><span>固定 shape 不代表状态固定</span></div></div></div></div><div class="binding-contract"><div><b>Operation</b><span>保留参数与 Runner</span></div><div><b>VariantPack</b><span>传入张量描述与地址</span></div><div><b>Context</b><span>提供 stream 与 tiling 缓冲区</span></div><div><b>调用方</b><span>提供输出与 workspace</span></div></div></figure>
