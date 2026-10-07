@@ -2,7 +2,7 @@
 
 框架机制与 ATB 接入方案，当前为第 1—3 章修订审阅稿（2026-10-07）。
 
-网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/b22051caa9ca001a64c160f620159b011cfa9749/index.html
+网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/c0832e5c3c23b4923baf1407ed7adb8e0b5d190c/index.html
 
 - 第 1 章：先对照相同 FFN 的算子接入与子图接入，再分析 MP8 分片、归约和 Prefill / Decode 开销。
 - 第 2 章：解释 Paddle 的图优化、执行指令、计算通信依赖，以及生成循环保留的主机同步。
