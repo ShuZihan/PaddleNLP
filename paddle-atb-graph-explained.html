@@ -170,60 +170,87 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
 }
 @media print{.architecture-routes{grid-template-columns:repeat(3,minmax(0,1fr))}.appendix{break-before:page}}
 
+/* Build the framework concepts in execution order, before comparing interfaces. */
+.background-software,.background-hardware{border:1px solid #c6d6e4;border-radius:7px;padding:12px 15px}.background-kind{font-size:11px;color:#657f96;margin-bottom:9px}.background-layer{border:1px solid #b4c9de;background:#edf3fb;border-radius:5px;padding:10px 13px;text-align:center;line-height:1.65}.background-layer>b{display:block;font-size:14px;font-weight:600;color:#315d83}.background-layer>span{display:block;font-size:12px;color:#4f6b82;margin-top:4px}.background-link{text-align:center;color:#7991a7;font-size:18px;line-height:1.4;padding:3px}.background-layer.backend{background:#f2f7f4;border-color:#aecabd}.background-layer.backend>b{color:#256951}.background-atb{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:11px;border-top:1px dashed #b7cec0;padding-top:9px;font-size:11px;line-height:1.7}.background-atb b{font-weight:600;color:#286952}.background-atb span{color:#557668}.device-link{font-size:11px;padding:9px 0;color:#5d7990}.background-hardware{background:#f7f9fb}.background-devices{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:7px}.background-devices>span{font-size:11px;text-align:center;padding:9px 3px;background:#e8eff6;border:1px solid #b7c9d9;border-radius:4px;white-space:nowrap}.background-state{font-size:11px;color:#637b90;text-align:center;margin-top:10px;line-height:1.7}
+.program-ffn{padding:11px 13px;background:#edf4fb;border:1px solid #b6cbe0;border-radius:5px;line-height:1.7}.program-ffn>b{display:block;font-size:12px;color:#426987;margin-bottom:8px}.program-ffn>div{display:flex;justify-content:center;align-items:center;gap:9px;font-size:12px}.program-ffn i{font-style:normal;color:#6e8ca6}.program-record{margin-top:15px;padding:12px 14px;background:#f7f9fc;border:1px solid #d0dce6;border-radius:5px}.program-record h4{font-size:13px;color:#426785;margin-bottom:9px}.program-record dl{display:grid;grid-template-columns:88px minmax(0,1fr);gap:7px 13px;font-size:12px;line-height:1.7;margin:0}.program-record dt{color:#638098}.program-record dd{margin:0}.program-shapes{font-size:11px;line-height:1.75;padding:11px 0;color:#60788f;display:flex;gap:12px;flex-wrap:wrap}.program-shapes b{font-weight:600;color:#476d8b}.program-blocks{border-top:1px solid #d2dee9;margin-top:3px;padding-top:12px}.program-block-label{font-size:12px;color:#476d8b;margin-bottom:9px;font-weight:600}.program-outer{border:1px solid #abc2d8;border-radius:5px;padding:10px 12px;font-size:12px;line-height:1.7}.program-outer>b,.program-inner>b{font-size:11px;display:inline-block;color:#4a7091;margin-right:13px;font-weight:600}.program-inner{margin:9px 0 0 17px;border-left:2px solid #95c1ad;background:#eff6f2;padding:8px 11px}.program-inner>b{color:#36745d}.program-inner>span{font-size:11px;color:#4a6c5e}
+.instruction-origin{background:#edf3fb;border:1px solid #b4c9dd;padding:10px 12px;border-radius:5px;line-height:1.7;margin-bottom:13px}.instruction-origin b{display:block;font-size:13px;font-weight:600;color:#3c6385}.instruction-origin span{display:block;font-size:11px;color:#58758e;margin-top:4px}.instruction-reuse{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:15px}.instruction-reuse>div{border-top:2px solid #aac2d9;padding:8px 0;line-height:1.7}.instruction-reuse b{display:block;font-size:12px;color:#4b6e8a;font-weight:600}.instruction-reuse span{display:block;font-size:11px;color:#58738b}.instruction-updates{background:#f5f8fb;border:1px solid #d4e0e9;border-radius:5px;padding:9px 11px}.instruction-updates>div{display:grid;grid-template-columns:82px minmax(0,1fr);gap:10px;font-size:12px;line-height:1.7;padding:4px 0}.instruction-updates b{font-weight:600;color:#3f6886}.instruction-updates span{color:#597087}
+.dependency-order{padding:12px 13px;background:#f5f8fb;border:1px solid #ccdce9;border-radius:5px;margin-bottom:15px;line-height:1.7}.dependency-order>b{font-size:12px;font-weight:600;color:#436a88;display:block;margin-bottom:9px}.dependency-order>div{display:flex;gap:9px;justify-content:center;align-items:center;font-size:12px}.dependency-order i{font-style:normal;color:#8097aa}.dependency-order small{font-size:11px;display:block;color:#627d93;margin-top:8px}
+.linear-example{padding:12px 13px;background:#edf3fb;border:1px solid #aec6dd;border-radius:5px;line-height:1.7}.linear-example b{display:block;font-size:14px;font-weight:600;color:#315f84}.linear-example span{display:block;font-size:11px;color:#56768f;margin-top:6px}.single-output,.single-inputs{display:grid;grid-template-columns:91px minmax(0,1fr);gap:13px;padding:11px 3px;border-bottom:1px solid #e0e8ef;font-size:12px;line-height:1.7}.single-output b,.single-inputs b{font-weight:600;color:#416d8e}.single-output span,.single-inputs span{color:#526f87}.single-inputs{margin-bottom:14px}.single-call{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.65fr);gap:18px;padding:12px 13px;border:1px solid #b6cee2;border-radius:6px;background:#f8fafc;line-height:1.7}.single-public>b{font-size:12px;color:#3b6a8d;font-weight:600;display:block;margin-bottom:5px}.single-public code,.single-internal code{font-size:12px;display:block;width:fit-content}.single-internal{border-left:2px solid #aac8df;padding-left:13px}.single-internal>span,.single-launch>span{display:block;font-size:11px;color:#5a7388;margin-top:6px}.single-space{padding:9px 0;text-align:center;font-size:11px;color:#6e8396}.single-launch+ .single-launch{border-top:1px solid #d6e2eb;margin-top:10px;padding-top:9px}.single-launch>b{font-size:11px;color:#587b96;font-weight:600;display:block;margin-bottom:4px}.single-complete{margin-top:12px;padding:9px 12px;border-left:2px solid #95bca9;background:#eef6f1;line-height:1.7}.single-complete>b{display:block;font-size:12px;font-weight:600;color:#356f57}.single-complete>span{display:block;font-size:11px;color:#5d786a;margin-top:3px}
+.graph-interface-compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:14px}.graph-interface-route{border:1px solid #b0c8de;border-radius:7px;padding:13px 12px;display:flex;flex-direction:column;min-width:0}.graph-interface-route.delegated{border-color:#9cc8b2}.graph-interface-route h4{font-size:14px;color:#386b91;margin:0 0 6px}.graph-interface-route.delegated h4{color:#2d775a}.graph-interface-count{font-size:11px;color:#5d7d94;padding-bottom:11px;border-bottom:1px solid #d7e2eb}.graph-interface-phase{padding:13px 1px;font-size:12px;line-height:1.7}.graph-interface-phase>b{display:block;color:#4d7592;font-weight:600;font-size:11px;margin-bottom:6px}.graph-interface-phase code{display:block;width:fit-content;max-width:100%;font-size:12px}.interface-down{display:block;font-size:14px;color:#7b98b0;margin:3px 0}.graph-interface-phase small,.interface-runner-chain{font-size:11px;color:#5a7891;display:block;margin-top:7px}.graph-interface-phase:not(.execute){min-height:174px}.graph-interface-phase.execute{border-top:1px solid #d9e4ec;flex:1}.graph-inner-phase{margin-top:12px;border-left:2px solid #adc8dc;padding-left:10px}.graph-inner-phase>b{display:block;font-size:11px;font-weight:600;color:#5c7e96;margin-bottom:4px}.graph-inner-phase>span{display:block;font-size:11px;color:#56748a;margin-top:5px}.delegated .graph-inner-phase{border-left-color:#a0c6af}.graph-interface-route .space-owner{margin-top:5px;font-size:12px}
+.program-map{border:1px solid #bfd1e2;border-radius:5px;overflow:hidden}.program-map-head,.program-map-row{display:grid;grid-template-columns:1fr 1.25fr;gap:16px;padding:11px 13px;font-size:12px;line-height:1.8}.program-map-head{background:#eaf2fa;color:#4b6f8d;font-size:11px}.program-map-head b{font-weight:600}.program-map-row+.program-map-row{border-top:1px solid #dce6ee}.program-map-row>span:first-child{color:#466d8e}.program-map-row>span+span{color:#546e84}.program-map-row code{font-size:11px}.instruction-backend{padding:12px 2px;line-height:1.75}.instruction-backend b{display:block;font-size:12px;color:#466e8c;font-weight:600}.instruction-backend span{display:block;font-size:11px;color:#5d7890;margin-top:5px}
+.background-backend-work{display:flex;justify-content:center;gap:14px;margin:9px 0;font-size:12px;color:#3d6b57}.background-backend-work>span{background:#e6f2eb;border:1px solid #b3cdbc;border-radius:4px;padding:6px 10px}.background-backend-resources{font-size:11px;color:#617c6e;line-height:1.7}.background-backend-resources small{font-size:10px}
+@media(max-width:700px){
+ .background-software,.background-hardware{padding:10px}.background-layer{padding:9px}.background-layer>b{font-size:13px}.background-layer>span{font-size:11px}.background-atb{display:block;margin-top:9px;padding-top:8px;font-size:11px}.background-atb b,.background-atb span{display:block}.background-atb span{margin-top:3px}.background-devices{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.background-devices>span{padding:7px 2px}.background-state{font-size:10px}
+ .program-ffn{padding:10px}.program-ffn>div{flex-direction:column;gap:3px;font-size:12px}.program-ffn i{font-size:0;line-height:1.1}.program-ffn i:after{content:'↓';font-size:14px}.program-record{padding:10px}.program-record dl{grid-template-columns:62px minmax(0,1fr);gap:7px 10px;font-size:11px}.program-record h4{font-size:12px}.program-shapes{display:block;font-size:10px;padding:10px 0}.program-shapes b,.program-shapes span{display:block}.program-shapes span{margin-top:4px}.program-block-label{font-size:11px}.program-outer{padding:9px;font-size:11px}.program-inner{margin-left:9px;padding:7px 8px}.program-inner>b,.program-inner>span{display:block}.program-inner>span{font-size:10px;margin-top:4px}
+ .instruction-origin b{font-size:12px}.instruction-reuse{gap:8px}.instruction-reuse b{font-size:11px}.instruction-reuse span{font-size:10px}.instruction-updates>div{font-size:11px;grid-template-columns:68px minmax(0,1fr);gap:8px}.dependency-order{padding:10px}.dependency-order>div{gap:6px;font-size:10px;flex-wrap:wrap}.dependency-order>b,.dependency-order small{font-size:11px}
+ .linear-example{padding:10px}.linear-example b{font-size:13px}.linear-example span{font-size:11px}.single-output,.single-inputs{grid-template-columns:65px minmax(0,1fr);gap:10px;font-size:11px}.single-call{grid-template-columns:1fr;gap:10px;padding:11px}.single-public{display:flex;align-items:center;gap:11px}.single-public>b{margin:0;font-size:11px;flex-shrink:0}.single-public code,.single-internal code{font-size:11px}.single-internal{margin-left:9px;padding-left:11px}.single-internal>span,.single-launch>span,.single-launch>b{font-size:11px}.single-complete>b{font-size:11px}.single-complete>span{font-size:11px}
+ .graph-interface-compare{grid-template-columns:1fr;gap:13px}.graph-interface-route{padding:12px}.graph-interface-route h4{font-size:13px}.graph-interface-phase:not(.execute){min-height:0}.graph-interface-phase{padding:12px 0}.graph-interface-phase code{font-size:11px}.graph-interface-phase small,.interface-runner-chain,.graph-inner-phase>span{font-size:11px}.graph-interface-route .space-owner{font-size:11px}
+ .program-map-head{display:none}.program-map-row{grid-template-columns:1fr;gap:6px;padding:10px;font-size:11px}.program-map-row>span+span{border-left:2px solid #b3c9dd;padding-left:9px}.program-map-row code{font-size:10px}.instruction-backend b{font-size:11px}.instruction-backend span{font-size:11px}
+}
+
 </style></head>
 <body><div class="topbar"><span>技术审阅 · 第 1—3 章</span><a href="paddle-atb-graph-explained.html" download="paddle-atb-guide-chapters-1-3.html" data-download>保存 HTML ↓</a></div><main><header class="hero"><p class="eyebrow">AI INFRA · 机制与接入设计</p><h1>Paddle 在 NPU 上运行 Llama-65B</h1>
-<p>框架机制与 ATB 接入方案 · MP8 / FP16 / batch=8 静态推理 · 第 1—3 章</p>
-</header><nav class="chapter-nav" aria-label="章节"><a href="#chapter-1">01 接入与分工</a><a href="#chapter-2">02 Paddle</a><a href="#chapter-3">03 ATB</a></nav>
-<section id="chapter-1" class="chapter"><h2><span>01</span>算子接入与子图接入</h2>
-<h3 id="section-1-1">1.1 三条接入路径的计算与调度归属</h3>
-<p>ATB 为昇腾提供 Transformer 计算实现与组图执行接口。Paddle 可以保留 FFN 的计算结构，分别调用 CANN 或 ATB 的计算实现；也可以用一个节点调用 ATB GraphOperation。接入位置决定了 <strong>Paddle 能继续优化哪些计算，以及执行时由谁准备、调度和管理中间张量</strong>。</p>
-<figure id="fig-architecture"><figcaption>计算接口与子图接口改变的职责</figcaption>
-<div class="architecture-root"><b>Paddle 模型 → 静态图 → Pass → 执行指令</b><span>输入、权重、KV 与图外通信由 Paddle 接入和管理</span></div>
-<div class="architecture-routes">
- <div class="architecture-route"><h4>直接调用计算接口</h4><div class="route-program">Paddle：A → B → C</div><div class="route-down">↓ 逐指令调用</div><div class="route-implementation"><b>CANN / 自定义 kernel</b><span>执行各节点计算</span></div><dl><dt>节点调度</dt><dd>Paddle</dd><dt>中间张量</dt><dd>Paddle</dd><dt>计算准备</dt><dd>对应计算接口</dd></dl></div>
- <div class="architecture-route"><h4>逐个 ATB Operation</h4><div class="route-program">Paddle：A → B → C</div><div class="route-down">↓ 逐指令调用</div><div class="route-implementation"><b>ATB Operation</b><span>每个节点 Setup / Execute</span></div><dl><dt>节点调度</dt><dd>Paddle</dd><dt>中间张量</dt><dd>Paddle</dd><dt>计算准备</dt><dd>各 Operation</dd></dl></div>
- <div class="architecture-route delegated"><h4>ATB GraphOperation</h4><div class="route-program">Paddle：子图节点</div><div class="route-down">↓ 一次子图调用</div><div class="route-implementation"><b>ATB：A → B → C</b><span>内部节点准备与提交</span></div><dl><dt>节点调度</dt><dd>Paddle 外层 / ATB 内层</dd><dt>中间张量</dt><dd>ATB 规划内部空间</dd><dt>计算准备</dt><dd>GraphOperation 组织</dd></dl></div>
+<p>框架机制与 ATB 接入方案 · 第 1—3 章</p>
+</header><nav class="chapter-nav" aria-label="章节"><a href="#chapter-1">01 背景与接入</a><a href="#chapter-2">02 Paddle</a><a href="#chapter-3">03 ATB</a></nav>
+<section id="chapter-1" class="chapter"><h2><span>01</span>推理背景与接入问题</h2>
+<h3 id="section-1-1">1.1 Llama-65B 的推理任务与已有基础</h3>
+<p>这次适配的目标是通过 Paddle 在昇腾 NPU 上完成 Llama-65B 推理，采用 <strong>MP8、FP16、batch=8、静态推理</strong>。模型定义、权重处理和生成逻辑来自 PaddleNLP；Paddle 提供计算图优化与执行能力；NPU 后端将计算和通信调用交给设备实现。<a href="#sources">源码 1</a></p>
+<p>ATB 是昇腾的 Transformer 推理加速库，既提供计算实现，也支持将多个计算组织成子图。它接在 Paddle 的设备执行侧，上层模型与生成流程仍由 PaddleNLP / Paddle 承接。</p>
+<figure id="fig-background"><figcaption>从模型与生成逻辑到八卡设备执行</figcaption>
+<div class="background-software"><div class="background-kind">软件</div>
+ <div class="background-layer"><b>PaddleNLP</b><span>Llama 模型 · 权重处理 · 生成逻辑</span></div>
+ <div class="background-link">↓</div>
+ <div class="background-layer"><b>Paddle</b><span>保存并优化计算图 · 组织执行</span></div>
+ <div class="background-link">↓</div>
+ <div class="background-layer backend"><b>NPU 后端</b><div class="background-backend-work"><span>计算实现</span><span>多卡通信 · HCCL</span></div><div class="background-backend-resources">计算与通信共同使用设备内存和 stream<br><small>权重 · KV · 临时空间</small></div><div class="background-atb"><b>ATB · 可选加速库</b><span>提供计算实现，或承接一段计算图</span></div></div>
 </div>
-<div class="architecture-device"><b>NPU stream</b><span>接收计算任务；外层 Paddle 提交 AllReduce</span></div>
-<div class="figure-note">A：gate/up 投影；B：SwiGLU；C：down 投影。底层存储与 stream 由 Paddle 接入层提供。</div></figure>
-<p>这里有两项独立选择：<strong>选用哪个计算实现，交出多大范围的图执行职责。</strong> 第二章先看 Paddle 自身如何完成这些职责；第三章沿 ATB 的内部执行，分析多一层组图实际改变的工作。</p>
-<h3 id="section-1-2">1.2 初始化与重复执行中的资源分工</h3>
-<p>图、权重和通信域可以跨多步推理保留；输入内容、KV 和有效长度逐步变化。准备结果能否复用，取决于变化是否影响实现选择、分块或空间需求。<a href="#sources">源码 1、7、8</a></p>
-<figure id="fig-resources"><figcaption>初始化建立资源，重复执行更新数据与必要配置</figcaption>
-<div class="resource-matrix">
- <div class="resource-head"><span>资源</span><span>建立与持有</span><span>重复执行</span></div>
- <div class="resource-row"><b>图 / 指令</b><span>Paddle 保存结构、实现与依赖</span><span>复用结构，推进本轮调用</span></div>
- <div class="resource-row"><b>权重</b><span>分片、布局处理后载入 NPU</span><span>保留数据与地址</span></div>
- <div class="resource-row"><b>Operation / Runner</b><span>适配层持有 Operation；内部保存准备状态</span><span>检查参数与描述，复用或更新配置</span></div>
- <div class="resource-row"><b>KV Cache</b><span>Paddle 提供并持有持久存储</span><span>Prefill 写入；Decode 追加并更新长度</span></div>
- <div class="resource-row"><b>输出 / workspace</b><span>Paddle 分配；ATB 返回需求并规划内部偏移</span><span>更新地址；容量不足时重新申请</span></div>
- <div class="resource-row"><b>stream / 通信域</b><span>框架及后端初始化并复用</span><span>按依赖提交；设备使用结束前保持有效</span></div>
-</div>
-<div class="resource-state"><b>跨步变化</b><span>FFN 形状可稳定；Attention 的 KV 内容与有效长度继续增长。</span></div></figure>
-<p>后文用同一段 FFN 追踪图、指令和临时空间，用 Attention / KV 追踪跨步状态。权重切分的原因与归约关系放在文末配套背景中。</p>
+<div class="background-link device-link">↓ 提交计算与通信任务</div>
+<div class="background-hardware"><div class="background-kind">设备 · MP8</div><div class="background-devices"><span>NPU 0</span><span>NPU 1</span><span>NPU 2</span><span>NPU 3</span><span>NPU 4</span><span>NPU 5</span><span>NPU 6</span><span>NPU 7</span></div><div class="background-state">各 rank 计算自己的权重分片，按模型依赖通信</div></div></figure>
+<h3 id="section-1-2">1.2 NPU 适配需要打通的执行环节</h3>
+<p>八卡前向中，每层的 Attention 输出投影和 FFN down 投影后都有 AllReduce，后续计算依赖归约结果；采样的 token 还需广播给其他 rank。KV 则跨步保存，新增内容、有效长度与下一步输入必须对应。因此，适配需要把计算、通信和状态更新连接成完整生成过程。<a href="#sources">源码 1、2</a></p>
+<table><thead><tr><th>阶段</th><th>执行中的变化</th><th>接入需要处理的工作</th></tr></thead><tbody><tr><td data-label="阶段"><span class="cell-value">Prefill</span></td><td data-label="执行中的变化"><span class="cell-value">输入 token 较多，写入 prompt KV，投影归约的数据量较大</span></td><td data-label="接入需要处理的工作"><span class="cell-value">计算与权重布局匹配、Attention 中间数据、通信及临时空间</span></td></tr><tr><td data-label="阶段"><span class="cell-value">Decode</span></td><td data-label="执行中的变化"><span class="cell-value">重复前向；FFN 形状可稳定，Attention 的 KV 有效长度持续增长</span></td><td data-label="接入需要处理的工作"><span class="cell-value">准备结果复用、动态长度更新、逐步提交和通信等待</span></td></tr></tbody></table>
+<p>权重与 KV 需要长期保留，临时张量与 workspace 按执行需要使用；它们能否复用，取决于设备是否仍在访问以及下一次计算的需求。后面的框架机制将具体解释这些资源如何管理。</p>
+<h3 id="section-1-3">1.3 计算实现与图执行的接入选择</h3>
+<p>需要分别决定<strong>用什么实现计算</strong>和<strong>由谁组织图的执行</strong>：</p>
+<ul>
+<li><strong>计算实现</strong>：选择 CANN 计算接口、自定义 kernel 或 ATB，决定实际执行的 kernel、布局与计算融合能力。</li>
+<li><strong>图的执行</strong>：由 Paddle 组织各节点，或将一段图交给 ATB；后者改变内部节点准备、调度与临时空间管理的分工。</li>
+</ul>
+<p>Paddle 组织图时也可以直接调用 ATB 的计算实现。因此，选用 ATB 的计算能力与采用 ATB 组图，需要分别说明收益。第二、三章建立判断所需的机制，第五章再评价完整接入方案。</p>
 </section>
 <section id="chapter-2" class="chapter"><h2><span>02</span>Paddle 静态图的优化与 NPU 执行</h2>
-<h3 id="section-2-1">2.1 动转静保留计算与状态，Pass 改变执行边界</h3>
-<p>PaddleNLP 将前向、采样和 Decode 循环一并导出。<code>to_static</code> 将模型代码中的 Tensor 运算转换为 Program：算子保存类型、输入输出和属性，变量保存 dtype、shape 等描述；Tensor 条件的 while 转为控制流算子，循环体放入子 Block。<code>InputSpec</code> 中的动态维度在运行时取值，因此每步长度增长可以沿用同一结构。权重、KV、长度和停止状态进入图后，执行器能够区分计算关系与循环携带的状态。<a href="#sources">源码 1、3</a></p>
-<p>Pass 对这个结构做模式匹配和替换。当前 Llama Pass 将下图中的 Attention 与 FFN 模式替换为 <code>fused_blha_layer_op</code>：原权重接到新节点，epsilon、transpose 等属性从匹配节点复制，原输出的消费者改接 <code>hidden_out</code>。<strong>替换改变了计算的可见范围；节点内部执行几个 kernel，由注册实现决定。</strong></p>
+<h3 id="section-2-1">2.1 计算关系保存为图，再由 Pass 改写</h3>
+<p>以本卡 FFN 为例：A 执行 gate/up 投影，B 执行 SwiGLU，C 执行 down 投影。直接执行模型代码时，Paddle 随算子调用运行计算；导出时，它将调用及输入输出关系保存下来。下一次推理便能使用这些记录组织执行。</p>
+<figure id="fig-paddle_program"><figcaption>导出保留计算连接、张量描述与控制流</figcaption>
+<div class="program-map"><div class="program-map-head"><b>模型中的计算</b><b>图保存的连接</b></div><div class="program-map-row"><span>A · z = Linear(x, W₁)</span><span>x、W₁ → <code>matmul_v2</code> → z</span></div><div class="program-map-row"><span>B · h = SwiGLU(z)</span><span>z → <code>fused_bias_act</code> → h</span></div><div class="program-map-row"><span>C · yᵣ = Linear(h, W₂)</span><span>h、W₂ → <code>matmul_v2</code> → yᵣ</span></div></div>
+<div class="program-record"><dl><dt>节点属性</dt><dd>transpose、activation 等计算参数</dd><dt>变量描述</dt><dd>名称、shape、dtype；设备数据在运行时绑定</dd></dl></div>
+<div class="program-shapes"><b>运行时 token 数为 T</b><span>x [T,8192] → z [T,5504] → h [T,2752] → yᵣ [T,8192]</span></div>
+<div class="program-blocks"><div class="program-block-label">Program · 保存节点、变量与 Block</div><div class="program-outer"><b>外层 Block</b><span>Prefill → while</span><div class="program-inner"><b>循环体 Block</b><span>模型前向 → 采样与状态更新 → 下一轮条件</span></div></div></div></figure>
+<p>这份静态程序称为 <strong>Program</strong>，其中每段计算由 <strong>Block</strong> 组织。PaddleNLP 用 <code>to_static</code> 导出包含前向、采样和循环的模型代码：Tensor 条件的 while 保留为控制流节点，其循环体放入子 Block。输入规格中的动态维度留待运行时确定，因此 Decode 长度增加时，节点连接可以不变，只更新长度、KV 等状态。<a href="#sources">源码 1、3</a></p>
+<p>有了显式连接，框架就能先匹配一段计算，再换成等价实现。当前 Llama 规则检查 Norm、Attention 和 FFN 的连接，把权重与状态接入融合节点，复制 epsilon、transpose 等属性，并将下游接到新输出。这类图改写称为 <strong>Pass</strong>。</p>
 <figure id="fig-paddle_pass"><figcaption>Llama Pass 的匹配与替换</figcaption>
 <div class="pass-before"><div class="pass-caption">完整匹配区域</div><div class="pass-chain">RMSNorm → QKV → Attention → 输出投影 → RMSNorm</div><div class="pass-chain ffn-chain-inline"><span>FFN1 MatMul</span><i>→</i><span>fused_bias_act</span><i>→</i><span>FFN2 MatMul</span></div></div>
 <div class="pass-replace">↓ 替换区域，重接输入输出</div>
 <div class="pass-after"><div class="pass-inputs"><b>保留输入</b><span>hidden · 权重 · KV<br>长度 · block table · RoPE</span></div><div class="pass-fused"><b>fused_blha_layer_op</b><span>一个 Paddle 节点 → 后端实现</span></div><div class="pass-output"><b>hidden_out</b><span>重接后继节点</span></div></div>
 <div class="pass-mapping"><div><b>数据映射</b><span>权重、KV 与长度接入对应输入</span></div><div><b>属性映射</b><span>epsilon 与四个 MatMul 的 trans_y 传入新节点</span></div><div><b>优化顺序</b><span>先替换后，后续 Paddle Pass 只能看到新节点及其接口</span></div></div></figure>
-<p>这种改写必须保留外部可观察的结果和状态更新；仍被边界外消费的中间量不能直接删掉。顺序也影响可用优化：先将 <code>matmul_v2</code> 改成自定义 Linear 节点，依赖原类型的整层 Pass 就无法匹配；先替换整层，后续 Pass 又看不到内部 FFN。逐算子注册 NPU 实现则可以保留原节点类型，让 Paddle 继续进行模式融合和布局处理。<a href="#sources">源码 3</a></p>
-<h3 id="section-2-2">2.2 执行器保存指令，后端仍需准备和提交</h3>
-<p>改写后的图还需变成可调用的指令。首次构建时，执行器将变量名映射到 Scope 中的 Tensor 对象，依据算子、设备、dtype 和 layout 选择实现，按需插入数据转换，再建立依赖、事件与最后使用信息。保存的是实现入口和变量绑定；Tensor 持有的实际地址与动态形状可随运行更新。</p>
+<p>Pass 的顺序影响后续规则能否匹配。若先把 <code>matmul_v2</code> 改名为自定义 Linear，依赖原类型的整层规则就无法匹配；若先替换整层，后续规则便看不到内部 FFN。<strong>仅为原节点注册 NPU 实现，可以保留这些图优化机会；将多个节点替换为一个节点，则改变了优化边界。</strong> 新节点最终执行一个融合 kernel，还是内部继续调用多个 kernel，由其实现决定。<a href="#sources">源码 3</a></p>
+<h3 id="section-2-2">2.2 节点绑定到实现后，重复运行更新数据</h3>
+<p>以逐算子执行的 C 为例：图只写明它读取 h、W₂ 并产生 yᵣ。真正运行前，Paddle 按变量名找到保存数据的 Tensor 对象，再根据节点类型、NPU、FP16 和布局选择实现入口。若输入布局不满足实现要求，还需安排转换。<strong>图中的变量描述、运行时 Tensor 对象和对象持有的设备地址，是三个不同层次。</strong></p>
 <figure id="fig-instructions"><figcaption>推理复用拓扑指令顺序，设备依赖仍在每次提交时生效</figcaption>
-<div class="instruction-build"><b>构建并保存</b><div><span>节点 → 选择执行实现</span><i>→</i><span>绑定变量对象</span><i>→</i><span>依赖 / 事件 / 最后使用</span><i>→</i><span>拓扑指令序列</span></div></div>
-<div class="instruction-trace"><b>每次运行 · TraceInstructionList</b><div class="instruction-sequence"><span>指令 0</span><i>→</i><span>指令 1</span><i>→</i><span>指令 2</span><i>→</i><span>…</span></div><div class="instruction-detail"><span>WaitEvent</span><i>→</i><span>调用后端</span><i>→</i><span>GC 检查</span><i>→</i><span>RecordEvent</span></div><div class="instruction-lifetime"><b>GC 检查</b><span>递减张量使用计数；到最后一次使用后，将存储交给异步安全的回收机制</span></div></div>
-<div class="instruction-wait"><b>CustomDevice RunImpl 结束</b><span>默认 DeviceContext::Wait；内部分流仍需正确汇入依赖</span></div>
-<div class="figure-note">此处为所查推理路径。通用异步执行路径另用依赖计数推进就绪指令。</div></figure>
-<p>通用执行器可以按前序依赖计数选择就绪指令；所查推理路径进一步保存拓扑顺序，在同一主机线程逐条调用，减少重复就绪判断和线程切换。它已复用了图分析与实现选择，但后端调用仍然发生：CANN 准备接口产生 executor 和 workspace 需求，执行接口接收本次空间与 stream；ATB 使用 Setup／Execute，配置怎样复用见下一章。<a href="#sources">源码 4</a></p>
-<p><strong>静态结构复用没有取消主机推进。</strong> 单个异步指令返回时，设备工作可能尚未完成；所查 CustomDevice 执行路径在一次 <code>RunImpl</code> 末尾还等待默认设备上下文的 stream。外层普通 while 由主机调用循环体执行器，停止条件若在 NPU 上，还要同步拷回 CPU 才能判断下一步。把循环体中的前向替换成 ATB 节点，这些循环控制仍保留。<a href="#sources">源码 3、4</a></p>
-<h3 id="section-2-3">2.3 依赖同时约束执行顺序与存储复用</h3>
-<p>回到 MP8 FFN 的 <code>C → AllReduce → 下一层</code>：C 输出本 rank 的部分和 yᵣ，AllReduce 得到完整结果 y。C 指令返回后，主机可以继续提交通信，但 AllReduce 必须等 yᵣ 在设备上写完；下一层又必须等归约完成。同流靠提交顺序保证，跨流靠事件保证。因此，拓扑顺序允许主机提前提交，设备依赖仍严格成立。</p>
+<div class="instruction-origin"><b>C：yᵣ = Linear(h, W₂)</b><span>图节点 matmul_v2 + NPU + FP16 + layout</span></div>
+<div class="instruction-build"><b>首次构建执行指令</b><div><span>选择 NPU 实现入口</span><i>→</i><span>绑定 h / W₂ / yᵣ 变量对象</span><i>→</i><span>保存依赖、事件和最后使用信息</span></div></div>
+<div class="instruction-reuse"><div><b>运行 1</b><span>h 地址 p₀，T = 8</span></div><div><b>运行 2</b><span>h 地址 p₁，T = 8</span></div><div><b>运行 3</b><span>T 改变</span></div></div>
+<div class="instruction-updates"><div><b>保留</b><span>变量对象、实现入口、依赖与拓扑指令顺序</span></div><div><b>读取 / 更新</b><span>当前地址与 shape；输出空间；受影响的后端配置</span></div></div>
+<div class="instruction-backend"><b>进入 NPU 实现后</b><span>CANN 准备配置与空间需求 → 提供本次空间及 stream → 提交设备任务</span></div>
+<div class="instruction-trace"><b>每次按已保存顺序执行 · TraceInstructionList</b><div class="instruction-detail"><span>WaitEvent</span><i>→</i><span>调用后端</span><i>→</i><span>GC 检查</span><i>→</i><span>RecordEvent</span></div></div>
+<div class="instruction-wait"><b>CustomDevice RunImpl 结束</b><span>等待默认 DeviceContext；内部分流须正确接入依赖</span></div></figure>
+<p>保存好入口、绑定和依赖的记录称为<strong>执行指令</strong>，执行器负责调用这些指令。输入规格仍满足图与实现约束时，更换 h 的地址无需重新匹配 Pass；T 改变则需要重新处理形状和空间。Paddle 入口能够复用，入口内部的计算库仍可按新规格重新选择设备 kernel。<a href="#sources">源码 4</a></p>
+<p>指令之间也有可复用的执行顺序。所查推理路径先依据依赖生成拓扑序，随后在同一主机线程按序调用；通用调度路径则可以用前序计数动态挑选就绪指令。重复推理因此省去了重新分析图和选择 Paddle 实现的工作，但仍要进入后端：例如 CANN 准备接口返回执行配置与 workspace 需求，执行接口再接收地址和 stream，完成本次提交。</p>
+<p>异步提交结束时，设备可能仍在计算。所查 CustomDevice 路径在一次执行器运行末尾等待默认设备上下文的 stream；外层普通 while 还要由主机读取停止条件，条件在 NPU 上时需同步拷回。这说明静态图既能复用指令，也仍可能保留逐步提交和控制流同步。<a href="#sources">源码 3、4</a></p>
+<h3 id="section-2-3">2.3 执行依赖与设备完成共同决定存储复用</h3>
+<p>C 产生本 rank 的部分和 yᵣ，AllReduce 将它归约为完整 y，下一层再读取 y。下面只看这三个节点：未满足的前序数量先决定谁能被安排；stream 顺序或 event 再约束设备何时真正开始。</p>
 <figure id="fig-streams"><figcaption>事件约束设备执行，GC 保护仍在使用的存储</figcaption>
+<div class="dependency-order"><b>局部依赖：C 的前驱已安排</b><div><span>C：0</span><i>→</i><span>AllReduce：1 → 0</span><i>→</i><span>下一层：1 → 0</span></div><small>数字为尚未安排的前驱数。构建时保存拓扑序；重复推理按序提交。</small></div>
 <div class="same-stream"><b>同流</b><span>C → AllReduce → 消费 y</span></div>
 <svg class="stream-svg" viewBox="0 0 330 290" role="img" aria-label="双流：计算流 C 后记录 ready，通信流等待 ready 执行 AllReduce，再记录 done；计算流等待 done 才消费 y。">
  <defs><marker id="event-arrow" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" fill="#53667a"/></marker></defs>
@@ -238,27 +265,56 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
  <g class="svg-node"><rect x="21" y="230" width="114" height="34"/><text x="78" y="252" text-anchor="middle">消费完整 y</text></g>
 </svg>
 <div class="state-lines"><div><b>指令提交</b><span>主机调用返回后，设备仍受 stream / event 约束</span></div><div><b>通信缓冲区</b><span>yᵣ 存储保留到通信使用结束</span></div></div>
-<div class="storage-timeline"><h4>z 的最后一次使用是 B</h4><div class="storage-lane"><b>主机</b><span>A 提交 → B 提交读取 → 使用计数归零，进入 GC</span></div><div class="storage-lane"><b>设备</b><span>A 写 z → B 读取 z → 最后读取完成</span></div><div class="storage-release">GC 确认设备使用结束 → 存储可安全复用</div></div></figure>
-<p>Paddle 依据读写关系计算最后使用，而非只看算子在文件中的位置。z 仅被 B 消费时，在 B 之后检查回收；若还有并行消费者，就要等所有末端使用者提交完毕。<strong>引用计数归零只确定逻辑寿命结束。</strong> Event GC 将内存持有对象保留到设备事件完成；采用 stream-safe allocator 的路径则记录使用流，防止释放后的空间过早被另一条流复用。h 在 C 后按相同规则处理。<a href="#sources">源码 5</a></p>
-<p>KV 跨 step 存活，不能按临时 z、h 回收。原地更新和别名还引入写后读、读后写约束：若新节点只声明读取 KV、内部却修改它，外层依赖分析不会自动识别这次写入。collective 也有张量关系之外的顺序要求：两个互不依赖的归约，在各 rank 上仍须按一致次序执行。Paddle 可按 <code>ring_id</code> 识别通信节点并补充顺序依赖；融合节点需要保留相应信息或等价控制依赖。</p>
-<p>GPU 与 NPU 都需要上述约束，具体保障取决于调用路径。ProcessGroupNCCL／ProcessGroupCustom 通过事件连接计算与通信流，并按 allocator 配置记录跨流存储使用；静态节点也可经 CommContext 直接提交，此时没有 ProcessGroup Task 代管。StreamAnalyzer 对 NCCL 的特定通信流另有处理，NPU 接入必须对应 kernel 实际使用的 stream 建立事件与存储保留。只将计算替换为 ATB，Paddle 已有的这些职责仍然存在；连通信一起接管，则要一并实现这些执行契约。<a href="#sources">源码 5</a></p>
+<div class="storage-timeline"><h4>z 仅由 B 再使用一次</h4><div class="storage-lane"><b>主机</b><span>使用计数 1 → B 提交返回 → 计数 0，进入 GC</span></div><div class="storage-lane"><b>设备</b><span>A 写 z → B 读取 z → 最后读取完成</span></div><div class="storage-release">GC 确认设备使用结束 → 存储可安全复用</div></div></figure>
+<p>C 的主机调用返回，就可以继续提交通信；设备端必须等 ready 事件完成才能读取 yᵣ。下一层同样等待 done。独立通信流因此允许提前提交，却不能消除 <code>C → 归约 → 下一层</code> 的数据依赖。</p>
+<p>存储回收也有两个时点。z 仅被 B 消费时，Paddle 将最后使用计数设为 1；B 的主机调用结束后减为 0，表示后续指令不再需要 z。此时设备可能仍在读取，所以 <strong>Event GC</strong> 会继续持有内存，等记录在使用流上的事件完成再释放。多个互不依赖的消费者对应多个末端使用者，回收必须覆盖全部使用；采用 stream-safe allocator 的路径还会记录使用流，防止空间被过早复用。<a href="#sources">源码 5</a></p>
+<p>KV 的规则不同：它需要跨 step 保留，更新位置后还会被后续 Attention 读取。两个变量即使名称不同，只要共享同一 KV 存储，就存在别名；框架必须知道它们的读写关系。新节点只声明“读取 KV”却在内部写入时，Paddle 无法仅靠输入输出连线推导这次写入的依赖。</p>
+<p>通信还增加跨 rank 的顺序要求。两个归约即使没有张量依赖，各 rank 也要以一致次序调用；Paddle 可识别带 <code>ring_id</code> 的通信节点并补充顺序边。将通信封装进融合节点后，这些信息仍需保留或由等价依赖表达。</p>
+<p>事件和存储由谁保障，取决于实际通信入口：</p>
+<table><thead><tr><th>提交方式</th><th>实际提供的保障</th></tr></thead><tbody><tr><td data-label="提交方式"><span class="cell-value">交给 Paddle 通信组对象 ProcessGroup</span></td><td data-label="实际提供的保障"><span class="cell-value">GPU 的 NCCL 实现与 NPU 的 CustomDevice 实现均建立流间事件，并按 allocator 配置记录存储使用</span></td></tr><tr><td data-label="提交方式"><span class="cell-value">通过通信上下文 CommContext 直接调用库</span></td><td data-label="实际提供的保障"><span class="cell-value">所选 kernel 决定使用计算流还是通信流，调用路径负责接齐事件与存储存活</span></td></tr></tbody></table>
+<p>静态 AllReduce 可以进入上述任一路径。Paddle 对部分 NCCL 通信流有专门分析；NPU 接入要按其实际提交流检查对应依赖。第五章据此组合计算与通信的提交归属，分析哪些工作能够重叠。<a href="#sources">源码 5</a></p>
 </section>
-<section id="chapter-3" class="chapter"><h2><span>03</span>ATB 的计算收益与组图增量</h2>
-<h3 id="section-3-1">3.1 固定计算实现后，组图改变调用与空间管理</h3>
-<p><strong>ATB 将计算定义与执行状态分开。</strong> Operation 保存算子参数、校验输入并推导输出；Runner 负责选定实现的准备和提交。GraphOperation 也是 Operation，但它保存的是节点和 tensor ID 的连接关系，首次准备时据此创建 GraphRunner 及各节点的 Runner。<a href="#sources">源码 9</a></p>
+<section id="chapter-3" class="chapter"><h2><span>03</span>ATB 的执行机制与加速来源</h2>
+<h3 id="section-3-1">3.1 单个计算的准备、执行与复用</h3>
+<p>先看一次 Linear：<code>x[8,K] × W[K,N] → z[8,N]</code>。后续 Decode 步骤更新 x，输出 z 也可能换地址，但 transpose、bias 等计算参数通常保持不变。ATB 用 <code>CreateOperation</code> 将这些参数保存为 <strong>Linear Operation</strong>，后续调用复用这个对象。</p>
+<p>ATB 接着要根据输入的 shape、dtype、format 准备执行：确定 kernel、分块尺寸、核间工作分配和临时空间需求。这些结果依赖输入规格，适合保存后复用。<strong>Setup 负责这项准备，Execute 使用准备结果处理本次数据。</strong> 内部承担准备与提交的对象称为 Runner，由 Operation 首次 Setup 时创建并持有。<a href="#sources">源码 8</a></p>
+<figure id="fig-setup"><figcaption>从一次 Linear 到可复用的准备结果</figcaption>
+<div class="linear-example"><b>x [8,K] · W [K,N] → z [8,N]</b><span>固定 transpose、bias 等参数 → CreateOperation → 保存为 Operation</span></div>
+<div class="single-output"><b>准备输出 z</b><span>InferShape 推导输出描述，或沿用 Paddle 的描述；由 Paddle 提供存储。</span></div>
+<div class="single-inputs"><b>本次输入</b><span>VariantPack：张量的描述与地址<br>Context：当前 stream 与 tiling 缓冲区</span></div>
+<div class="single-call"><div class="single-public"><b>公开 Setup</b><code>Operation.Setup</code></div><div class="single-internal"><code>Runner.Setup</code><span>按规格准备或复用配置<br>返回 workspace 字节数</span></div></div>
+<div class="single-space">↓ Paddle 分配或复用 workspace</div>
+<div class="single-call"><div class="single-public"><b>公开 Execute</b><code>Operation.Execute</code></div><div class="single-internal"><div class="single-launch"><b>PreLaunch</b><code>Runner.PreExecute</code><span>绑定当前地址，准备 tiling / launch 参数</span></div><div class="single-launch"><b>Launch</b><code>Runner.Execute</code><span>向 Context 的 stream 提交</span></div></div></div>
+<div class="single-complete"><b>主机返回 → 设备继续执行 → 完成</b><span>设备访问结束后，相关存储才能复用</span></div>
+<div class="setup-state-title">下一次调用的变化</div>
+<div class="setup-state-matrix">
+ <div><b>首次调用</b><span>建立 Runner、tiling 和空间需求</span></div>
+ <div><b>仅地址变化</b><span>复用有效配置；Execute 使用新地址</span></div>
+ <div><b>规格 / 参数变化</b><span>检查并更新准备结果；重算空间需求</span></div>
+ <div><b>Attention 长度增加</b><span>更新有效长度；检查相关 tiling 与内部参数</span></div>
+</div>
+</figure>
+<p>图中的 <strong>VariantPack</strong> 将每个输入、输出的描述与实际地址交给 ATB；<strong>Context</strong> 传入执行 stream，并提供 tiling 缓冲区。</p>
+<p>当前 Paddle 包装层每次仍调用 Setup，由 Runner 判断哪些准备可以复用。所查 OpsRunner 的缓存检查比较输入 <strong>TensorDesc</strong>，并检查参数是否更新、此前是否完成准备；设备地址不参与这项描述比较。动态修改内部计算的 Runner 还需处理本次状态。<a href="#sources">源码 7</a></p>
+<p>图中 KV 长度的变化解释了缓存条件为何不能只看 shape：所查 Attention Runner 会从 host 数据读取长度，更新 qSeqLen／kvSeqLen。固定形状的 Linear 与状态变化的 Attention，因此具有不同的准备开销。</p>
+<p><strong>输出、KV 和 workspace 的存储由 Paddle 持有，复用需要满足设备依赖。</strong> 当前包装层按 stream 缓存 Context，workspace 则按容量复用，扩容前等待该 stream。Execute 返回时设备可能仍在访问这些地址，同流后续任务可按顺序复用临时空间，跨流复用要等待最后访问完成；KV 的有效内容还须保留到后续 Decode 步骤。缓存省下的是重复准备，数据更新、kernel 提交及设备计算仍然发生。</p>
+<h3 id="section-3-2">3.2 GraphOperation 组织节点执行与内部空间</h3>
+<p>单个 Operation 的执行过程确定后，可以将 FFN 的三个计算连起来：<strong>A 为 gate/up 投影，B 为 SwiGLU，C 为 down 投影</strong>。GraphOperation 保存这三个 Operation，以及 <code>A → z → B → h → C</code> 的 tensor ID 连接；首次 Setup 据此创建 GraphRunner 和各节点 Runner。<a href="#sources">源码 9</a></p>
 <figure id="fig-graph"><figcaption>外层调用减少，内部计算与中间张量保留</figcaption>
 <div class="fixed-baseline">A gate/up 投影 → B SwiGLU → C down 投影；固定实现与布局，AllReduce 留在 Paddle</div>
-<div class="two call-compare">
- <div class="call-route"><h4>Paddle 逐 Operation</h4><div class="call-count"><b>3 条 Paddle 指令</b><span>3 Setup + 3 Execute</span></div>
-  <div class="public-ops"><div><b>A</b><span>Setup → Execute</span></div><div><b>B</b><span>Setup → Execute</span></div><div><b>C</b><span>Setup → Execute</span></div></div>
+<div class="graph-interface-compare">
+ <div class="graph-interface-route"><h4>Paddle 逐 Operation</h4><div class="graph-interface-count">3 组公开 Setup / Execute</div>
+  <div class="graph-interface-phase"><b>公开 Setup</b><code>Operation A.Setup</code><span class="interface-down">↓</span><code>Runner A.Setup</code><small>B、C 分别执行同样的调用</small></div>
+  <div class="graph-interface-phase execute"><b>公开 Execute</b><code>Operation A.Execute</code><div class="graph-inner-phase"><b>PreLaunch</b><code>Runner A.PreExecute</code><span>地址、tiling 与 launch 参数</span></div><div class="graph-inner-phase"><b>Launch</b><code>Runner A.Execute</code><span>向 stream 提交计算</span></div><small>B、C 分别执行同样的调用</small></div>
   <div class="space-owner">z / h<span>Paddle Tensor</span></div>
  </div>
- <div class="call-route delegated"><h4>ATB GraphOperation</h4><div class="call-count"><b>1 条 Paddle 指令</b><span>1 Setup + 1 Execute</span></div>
-  <div class="internal-ops"><b>GraphOperation</b><span class="runner-label">↓ GraphRunner</span><div>Runner A → B → C</div><span>各节点准备与提交</span></div>
+ <div class="graph-interface-route delegated"><h4>ATB GraphOperation</h4><div class="graph-interface-count">1 组公开 Setup / Execute</div>
+  <div class="graph-interface-phase"><b>公开 Setup</b><code>GraphOperation.Setup</code><span class="interface-down">↓</span><code>GraphRunner.Setup</code><span class="interface-runner-chain">↓ 子 Runner：A.Setup → B.Setup → C.Setup</span></div>
+  <div class="graph-interface-phase execute"><b>公开 Execute</b><code>GraphOperation.Execute</code><div class="graph-inner-phase"><b>PreLaunch</b><code>GraphRunner.PreExecute</code><span>↓ 子 Runner：A.PreExecute → B.PreExecute → C.PreExecute</span></div><div class="graph-inner-phase"><b>Launch</b><code>GraphRunner.Execute</code><span>↓ 子 Runner：A.Execute → B.Execute → C.Execute</span></div></div>
   <div class="space-owner">z / h<span>ATB workspace 偏移</span></div>
  </div>
 </div>
-<div class="shared-work"><b>两侧均可缓存节点配置</b><span>普通提交路径：A → B → C → Paddle AllReduce</span></div>
+<div class="shared-work"><span>普通提交路径，两侧均执行 A → B → C → Paddle AllReduce</span></div>
 <div class="lifetime" role="img" aria-label="两侧的张量存活关系相同。A 生成 z，B 读取 z 并生成 h，C 读取 h 并写出 y。B 执行时 z 和 h 同时存活。scratch 可顺序复用。">
  <div></div><div class="life-head">A · Linear</div><div class="life-head overlap">B · SwiGLU</div><div class="life-head">C · Linear</div>
  <div class="life-label">z<small>中间张量</small></div><div class="life-bar z start">生成</div><div class="life-bar z end">读取结束</div><div></div>
@@ -268,29 +324,12 @@ h2>span{flex:0 0 auto;min-width:1.8em;white-space:nowrap}
 </div>
 <div class="memory-result"><b>ATB 内部张量地址</b><span>workspace 基址 + 规划偏移</span></div>
 <div class="figure-note">B 同时读 z、写 h；单流顺序执行时，scratch 按各节点需求的最大值预留并复用。</div></figure>
-<p>GraphRunner 按节点顺序传播张量描述，记录最后使用位置，再规划中间张量的内存偏移。这里的“释放”发生在规划阶段：它允许后续节点复用某个区间；运行时只需用 <strong>workspace 基址 + 偏移</strong> 得到地址。独立输出的 B 同时读取 z、写入 h，两者必须占用不同区间。单流 kernel scratch 则可按节点最大需求预留，依次复用。</p>
-<p>在使用设备 tiling 缓冲区的路径上，GraphRunner 还会汇总各节点的 tiling 数据。当前接入使用普通提交模式，Execute 依次调用内部 Runner；外层指令减少后，内部准备和提交的次数仍由这些 Runner 决定。ATB 也提供独立的设备重放模式，其捕获与复用条件放在第四章分析。</p>
-<h3 id="section-3-2">3.2 Setup 准备执行配置，Execute 绑定并提交</h3>
-<p><strong>Setup 将输入规格转成可执行配置，Execute 将配置应用于本次数据。</strong> 前者选择 kernel、计算 tiling 和临时空间；后者更新地址、准备 launch 参数并向 stream 提交。tiling 包括分块尺寸、核间工作分配等信息，决定同一实现如何处理当前形状。</p>
-<figure id="fig-setup"><figcaption>描述决定准备结果，当前地址进入设备提交</figcaption>
-<div class="setup-input"><b>Operation 参数 + TensorDesc</b><span>描述包含 shape、dtype、format；VariantPack 同时携带张量地址</span></div>
-<div class="setup-flow">
- <div><b>InferShape</b><span>推导输出描述；也可使用 Paddle 已推导的描述</span><small>调用方准备输出存储</small></div>
- <div><b>Setup</b><span>选择 / 复用 Runner<br>准备 tiling 与 workspace 需求</span><small>调用方分配或复用 workspace</small></div>
- <div><b>Execute</b><span>绑定当前地址；组织 tiling / launch 参数<br>向 Context 的 stream 提交</span><small>主机返回后设备仍可继续执行</small></div>
-</div>
-<div class="setup-state-title">下一次调用的变化</div>
-<div class="setup-state-matrix">
- <div><b>首次调用</b><span>建立 Runner、tiling 和空间需求</span></div>
- <div><b>仅地址变化</b><span>复用有效配置；Execute 使用新地址</span></div>
- <div><b>规格 / 参数变化</b><span>检查并更新准备结果；重算空间需求</span></div>
- <div><b>Attention 长度增加</b><span>更新有效长度；检查相关 tiling 与内部参数</span></div>
-</div>
-<div class="binding-contract"><div><b>Operation / Runner</b><span>持有参数与准备状态</span></div><div><b>Context</b><span>提供 stream 与 tiling 缓冲区</span></div><div><b>Paddle 接入层</b><span>提供并保护输入、输出和 workspace</span></div><div><b>每次 Execute</b><span>按当前配置和地址执行本步计算</span></div></div></figure>
-<p>当前 Paddle 包装层每次都调用 Setup。OpsRunner 的缓存检查包含参数是否更新、是否已有准备结果及输入 TensorDesc 是否相同；动态修改内部计算的 Runner 还走自己的更新路径。<strong>命中缓存省下的是部分准备工作</strong>：地址重新绑定、提交和设备计算继续执行。所查 Attention Runner 从 host 长度数据更新 qSeqLen／kvSeqLen，说明同 shape 仍可能需要重新准备。<a href="#sources">源码 7</a></p>
-<p>ATB 返回的 workspace 需求包含 kernel scratch 和内部中间张量；真正的设备内存由当前 Paddle 包装层分配。该层按 stream 缓存 Context，并使用按容量扩大的静态 workspace，扩容前等待 stream。单流顺序执行可以复用这块空间；多 stream 并发时必须隔离存储或建立事件依赖，直到最后一次设备访问结束。KV 则跨步保存，不能作为本次执行结束即可复用的临时空间。<a href="#sources">源码 8</a></p>
+<p>GraphRunner 顺着连接传播张量描述，准备各节点 Runner，并汇总 tiling 与空间需求；执行时更新地址，再遍历内部 Runner。普通提交路径的 kernel 数量由各节点实现决定。</p>
+<p>组图还将 z、h 从 Paddle 张量变成 ATB 规划的内部存储。GraphRunner 记录它们的最后使用位置，在 Setup 中安排 workspace 偏移；Execute 将偏移加到本次 workspace 基址上，得到真实地址。</p>
+<p>规划阶段释放某个区间，意味着后续节点可以复用它；底层设备存储由 Paddle 提供。图中的 B 仍要读取 z 并写入 h，C 仍要读取 h，因此这次组图保留了中间张量的读写。Paddle 已有最后使用分析，ATB 组图的收益应具体比较外层调用、准备复用和空间规划，而设备访存的减少取决于计算实现。</p>
+<p>当前包装层使用 ATB 普通提交模式。ATB 另有 <code>GRAPH_LAUNCH_MODE</code>，通过捕获并重放设备任务减少重复提交；它与 GraphOperation 的节点组织是两项可组合的机制，第四章继续分析。</p>
 <h3 id="section-3-3">3.3 Attention 的分块实现直接改变中间数据</h3>
-<p><strong>融合 Attention 的直接收益是减少中间数据的物化与读写。</strong> 所查 ATB FP16 FlashAttention 路径用 Cube 计算 QK／PV，用 Vector 处理 Softmax；它按块处理 K、V，并累积当前 Q 块的输出，无需保存完整 score 和 probability。<a href="#sources">源码 6</a></p>
+<p><strong>融合 Attention 的直接收益是减少中间张量的物化与读写。</strong> 所查 ATB FP16 FlashAttention 路径用 Cube 计算 QK／PV，用 Vector 处理 Softmax；它逐块读取 K、V，并累积当前 Q 块的输出。<a href="#sources">源码 6</a></p>
 <figure id="fig-attention"><figcaption>融合 Attention 改变设备上的中间数据组织</figcaption>
 <div class="two attention-compare">
  <div class="attention-side"><h4>物化完整中间矩阵</h4><div class="matrix-score"><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile picked"></i><i class="tile picked"></i><i class="tile picked"></i><i class="tile picked"></i><i class="tile picked"></i><i class="tile picked"></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i><i class="tile "></i></div><div class="formula-small">QKᵀ → score → Softmax<br>→ probability → PV</div><div class="metric"><b>1.125 GiB / rank</b><span>一份完整 FP16 score</span></div></div>
@@ -304,10 +343,10 @@ m′ = max(m, max(sⱼ))          pⱼ = exp(sⱼ − m′)
 l′ = exp(m − m′) · l + sum(pⱼ)
 o′ = exp(m − m′) · o + pⱼVⱼ
 全部块处理后：输出 = o / l</code></pre>
-<p>新块提高最大值时，旧的 l、o 一起重新缩放，保持相同的归一化基准，因此逐块累积仍可得到完整 Attention 的结果。所查 NPU 实现仍使用块级全局 scratch 在 Cube／Vector 间传递数据；减少的是完整 S² 中间张量及其读写。</p>
-<p>这套实现可通过单个 Attention Operation 接入 Paddle。直接调用 CANN 融合 Attention 也是同类接入方式；二者的差异落在具体 kernel、支持的布局及动态长度处理上。</p>
+<p>新块提高最大值时，旧的 l、o 一起重新缩放，保持相同的归一化基准，因此可以逐块累积而无需保存完整 S² 中间张量。所查 NPU 实现仍使用块级全局 scratch 在 Cube／Vector 间传递数据。</p>
+<p>这套实现可以通过一个 Attention Operation 接入 Paddle；直接调用 CANN 融合 Attention 也是同类接入方式。两者应比较实际 kernel、支持的布局及动态长度处理。这里的访存收益来自计算实现，整层 GraphOperation 无需成为使用它的前提。</p>
 <h3 id="section-3-4">3.4 计算通信融合把等待细化到分块</h3>
-<p><strong>同一结果的计算与归约，要出现重叠，就必须让通信提前消费已完成的部分。</strong> 普通 Linear → AllReduce 以整个输出作为依赖单位；仅将两个 Operation 放进 GraphOperation，仍保留这个依赖。ATB 的 LCOC MatmulAllReduce 则在设备内部按结果块协作。<a href="#sources">源码 10</a></p>
+<p><strong>计算与同一结果的归约要发生重叠，通信必须提前消费已完成的部分。</strong> 普通 Linear → AllReduce 以整个输出作为依赖单位；将两个 Operation 放进 GraphOperation，仍保留这个依赖。ATB 的 LCOC MatmulAllReduce 则在设备内部按结果块协作。<a href="#sources">源码 10</a></p>
 <figure id="fig-overlap"><figcaption>计算通信融合将整段等待改为分块依赖</figcaption>
 <div class="comm-baseline"><b>普通调用</b><span>完成 MatMul → AllReduce</span></div>
 <div class="pipeline-title">LCOC 分块流水</div>
@@ -318,8 +357,8 @@ o′ = exp(m − m′) · o + pⱼVⱼ
  <g stroke="#7b91a7" fill="none" marker-end="url(#pipe-arrow)"><path d="M90 62 L151 90"/><path d="M153 62 L214 90"/><path d="M216 62 L277 90"/></g>
  <g class="svg-node comm"><rect x="125" y="93" width="57" height="34"/><text x="153" y="115" text-anchor="middle">归约 0</text><rect x="188" y="93" width="57" height="34"/><text x="216" y="115" text-anchor="middle">归约 1</text><rect x="251" y="93" width="57" height="34"/><text x="279" y="115" text-anchor="middle">归约 2</text></g>
 </svg><div class="state-lines"><div><b>本卡就绪</b><span>Cube 写入缓冲区，用 flag 通知 Vector</span></div><div><b>跨卡同步</b><span>各 rank 的对应结果块就绪后参与归约</span></div><div><b>空间复用</b><span>Cube 等待归约完成，才覆盖同一缓冲区位置</span></div></div><div class="figure-note">图表示依赖与流水关系，未按实测时间绘制。</div></figure>
-<p>设备内的就绪与释放协议将整段依赖细化为分块依赖，允许后续块的计算和先前块的归约同时推进。分块也增加同步并占用执行资源；Decode 输出较小时，可重叠的计算量有限，收益取决于分块和通信开销。Paddle 已有直调 <code>aclnnMatmulAllReduce</code> 的入口，可以局部接入同类能力；它与 LCOC 的具体实现需分别分析。</p>
-<p>通信 Operation 还需继承框架的资源约束。ATB HCCL 路径可借用外部 <code>HcclComm</code>，销毁责任留在 Paddle；LCCL 使用自己的 <code>LcalComm</code>。调用使用 Context 的 stream，直接 HCCL 路径不经过 Paddle ProcessGroup 的 Task 和存储保留逻辑，适配层因而要接好事件、内存生命周期及 collective 顺序。第五章将在这些机制上设计计算流与通信流的统一管理。</p>
+<p>这套协议将整段依赖细化为分块依赖，允许后续块的计算与先前块的归约同时推进。分块也增加同步并占用执行资源；Decode 输出较小时，可重叠的计算量有限。Paddle 已有直调 <code>aclnnMatmulAllReduce</code> 的入口，可以局部接入同类能力；其实现与 LCOC 分别分析。</p>
+<p>通信还需继承框架的资源约束。ATB HCCL 路径可借用外部 <code>HcclComm</code>，销毁责任留在 Paddle；LCCL 使用自己的 <code>LcalComm</code>。执行沿用 Context 的 stream；直接 HCCL 调用不经过 Paddle ProcessGroup 的 Task 和存储保留逻辑，适配层需要接好事件、内存生命周期和 collective 顺序。第五章将在这些机制上设计计算流与通信流的统一管理。</p>
 </section>
 <section id="appendix" class="chapter appendix"><h2>配套背景：MP8 FFN 的分片与归约</h2>
 <p>下图按 xW 记权重，T 是一次前向参与计算的 token 数；8 条序列均有效时，Decode 的 T=8。</p>
@@ -369,8 +408,8 @@ o′ = exp(m − m′) · o + pⱼVⱼ
 <li><a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L1198">指令事件与 GC</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/distributed/collective/process_group_custom.cc#L666">ProcessGroupCustom</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/dependency_builder.cc#L247">通信顺序</a>。启动脚本默认关闭 eager deletion 和 stream-safe allocator；部署时须结合配置核对存储行为。 <a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/program_interpreter.cc#L848">最后使用分析</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/garbage_collector/event_garbage_collector.cc#L171">Event GC 持有分配对象</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/dependency_builder.cc#L419">读写与 inplace 依赖</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/phi/kernels/custom/c_allreduce_kernel_impl.h#L63">静态 AllReduce 的两种入口</a>、<a href="https://github.com/ShuZihan/Paddle/blob/4793e33e12bc8b7a20f0750b3a79b4b6e68ea98d/paddle/fluid/framework/new_executor/interpreter/stream_analyzer.cc#L189">stream 选择与 NCCL 特例</a>。</li>
 <li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/self_attention/self_attention_operation.cpp#L2086">Attention Runner</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/mixkernels/unpad_flash_attention/op_kernel/unpad_flash_attention_mix.cce#L239">分块 kernel 与全局 scratch</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/mixkernels/unpad_flash_attention/op_kernel/fa_common.cce#L778">在线 Softmax</a>。</li>
 <li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/ops_runner.cpp#L162">Setup 复用</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/self_attention/self_attention_encoder_fusion_ops_runner.cpp#L119">Attention 长度更新</a>。 <a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/utils/tensor_util.cpp#L360">缓存比较的输入描述</a>，不以设备数据地址作为此项相等比较的内容。</li>
-<li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L520">Operation 准备与执行</a>、<a href="https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/llama_infer/atb_ops/atb_layers/runner.cc#L202">Paddle Context / workspace</a>。当前包装层使用静态 workspace 缓冲区，并发调用还需处理跨 stream 隔离。</li>
-<li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L304">GraphRunner 准备与空间</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L946">内部逐节点执行</a>。图采用独立输出的 SwiGLU；workspace 容量还包括对齐与实际 kernel 需求。 <a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/graph_operation.cpp#L285">GraphOperation 创建内部 Runner</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L699">内部描述与偏移准备</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1069">独立设备重放模式</a>。当前 Paddle 包装层未调用 SetLaunchMode，沿用默认 KERNEL_LAUNCH_MODE。</li>
+<li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L520">Operation 准备与执行</a>、<a href="https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/llama_infer/atb_ops/atb_layers/runner.cc#L202">Paddle Context / workspace</a>。当前包装层使用静态 workspace 缓冲区，并发调用还需处理跨 stream 隔离。<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1094">Operation Execute 的两个阶段</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/runner.cpp#L86">Runner PreExecute / Execute</a>。</li>
+<li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L304">GraphRunner 准备与空间</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L946">内部逐节点执行</a>。图采用独立输出的 SwiGLU；workspace 容量还包括对齐与实际 kernel 需求。 <a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/graph_operation.cpp#L285">GraphOperation 创建内部 Runner</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L699">内部描述与偏移准备</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/operation/operation_base.cpp#L1069">独立设备重放模式</a>。当前 Paddle 包装层未调用 SetLaunchMode，沿用默认 KERNEL_LAUNCH_MODE。<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/graph_runner.cpp#L390">GraphRunner 两阶段遍历</a>。</li>
 <li><a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/atb/runner/hccl_runner.cpp#L46">借用 HCCL 域</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/ops/ops_infer/linear_parallel/linear_parallel_operation.cpp#L617">LinearParallel 分支</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_ppmatmul.cce#L962">LCOC 分块生产</a>、<a href="https://github.com/ShuZihan/ascend-transformer-boost/blob/4827b6996008afc792b9e5396acae1f4967cc16e/src/kernels/lcal/src/kernels/coc_allreduce.cce#L210">分块归约及缓冲区释放通知</a>、<a href="https://github.com/ShuZihan/PaddleCustomDevice/blob/d0e25eef753eadf23a2ab4a5d90de4fcca123c74/backends/npu/custom_op/fused_mm_allreduce.cc#L22">Paddle 直调融合接口</a>。当前所查 Llama ATB 适配目录未见外部 HcclComm 注入；此处说明库能力与接入设计。CANN 融合接口与 LCOC 是不同实现，图中的设备流水对应后者。</li>
 </ol>
 </details><footer><a href="paddle-atb-graph-explained.md">Markdown 文字版</a><a href="paddle-atb-graph-explained.html" download="paddle-atb-guide-chapters-1-3.html" data-download>保存 HTML · 支持离线阅读</a></footer></main><script>
