@@ -2,9 +2,9 @@
 
 框架机制与 ATB 接入方案，第 1—3 章修订审阅稿（2026-10-07）。
 
-网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/90dad413e1b3b805341904a0a5807b9572057ee7/index.html
+网站：https://rawcdn.githack.com/ShuZihan/PaddleNLP/dea86170eecb139c0e2b91847f9a456fde0ac899/index.html
 
-本次修正：Pass 图连接 Attention 与 FFN，明确同一个 Pass 整体替换；第三章 FFN 图标注为局部机制示例。
+本次修正：Pass 匹配图的八个节点排成一条连续、不换行的计算链，手机可横向滑动查看；整个区域由同一个 Pass 一起替换。
 
 - 第 1 章：推理任务、已有基础、适配问题，以及计算实现与图执行的两项选择。
 - 第 2 章：从 FFN 的图记录展开 Pass 改写、实现绑定、指令复用、设备依赖与异步内存回收。
